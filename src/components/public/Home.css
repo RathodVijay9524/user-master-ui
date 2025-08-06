@@ -7,11 +7,11 @@
 
 /* Hero Section */
 .hero {
+  position: relative;
   background: linear-gradient(135deg, #3498db, #2c3e50);
   color: white;
-  padding: 5rem 2rem;
+  padding: 5rem 2rem 8rem; /* Extra bottom padding for CTA */
   text-align: center;
-  position: relative;
   overflow: hidden;
 }
 
@@ -34,14 +34,25 @@
   opacity: 0.9;
 }
 
-/* Buttons */
+/* CTA Buttons inside hero (floating layer) */
 .cta-buttons {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
+  z-index: 3;
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.8s ease forwards;
+  opacity: 0;
 }
 
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -79,6 +90,18 @@
 
 .btn-icon {
   margin-left: 0.5rem;
+}
+
+/* Fade-in Animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 /* Services Section */
@@ -184,23 +207,31 @@
   .hero h1 {
     font-size: 2.25rem;
   }
-  
+
   .hero p {
     font-size: 1.1rem;
   }
-  
+
   .services {
     padding: 3rem 1rem;
   }
-  
+
   .services h2 {
     font-size: 1.75rem;
   }
-  
+
   .services-grid {
     grid-template-columns: 1fr;
     max-width: 400px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    width: 90%;
+    bottom: 1.5rem;
   }
 }

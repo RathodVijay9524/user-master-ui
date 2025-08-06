@@ -25,6 +25,9 @@ import PublicNavbar from './components/public/PublicNavbar';
 import Footer from './components/public/Footer';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import ForgotPassword from './components/public/pages/ForgotPassword';
+import ResetPassword from './components/public/pages/ResetPassword';
+import NotFoundPage from './components/public/NotFoundPage ';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -163,8 +166,31 @@ if (loading) {
           }
         />
 
+<Route
+          path="/forgot-password"
+          element={
+            <>
+              <PublicNavbar />
+              <ForgotPassword />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <>
+              <PublicNavbar />
+              <ResetPassword />
+              <Footer />
+            </>
+          }
+        />
+       
+
         {/* Catch-all Route */}
-        <Route path="*" element={<h2 className="text-center mt-5">404 - Page Not Found</h2>} />
+        <Route path="*" element={<NotFoundPage />} />
+       
       </Routes>
     </Router>
      <ToastContainer position="top-center" autoClose={3000} />

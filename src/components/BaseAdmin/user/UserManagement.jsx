@@ -1,10 +1,7 @@
-// ✅ Updated UserManagement.jsx to integrate external RoleEditorModal
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Table, Spinner, Alert, Nav, Form, Row, Col } from 'react-bootstrap';
-import RoleEditorModal from './RoleEditorModal'; // ✅ Imported the reusable RoleEditorModal
+import RoleEditorModal from './RoleEditorModal';
 import { toast } from 'react-toastify';
-
 
 import {
   fetchUsersWithFilter,
@@ -30,12 +27,17 @@ const UserManagement = () => {
     filters
   } = useSelector(state => state.users);
 
-  const [activeTab, setActiveTab] = useState(0); // 0: All, 1: Active, 2: Deleted, 3: Expired
+  const [activeTab, setActiveTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // ✅ State for managing role modal visibility and selected user
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  const tabs = [
+    { id: 0, label: 'All Users', icon: '👥', color: 'blue' },
+    { id: 1, label: 'Active', icon: '✅', color: 'green' },
+    { id: 2, label: 'Deleted', icon: '❌', color: 'red' },
+    { id: 3, label: 'Expired', icon: '⏰', color: 'orange' }
+  ];
 
   const buildFilters = (tabKey, keyword = '') => {
     let newFilters = { keyword };
@@ -100,7 +102,6 @@ const UserManagement = () => {
       toast.error(`Soft delete failed: ${error}`);
     }
   };
-  
 
   const handleRestore = async (userId) => {
     try {
@@ -110,7 +111,6 @@ const UserManagement = () => {
       toast.error(`Restore failed: ${error}`);
     }
   };
-  
 
   const handlePermanentDelete = async (userId) => {
     try {
@@ -120,7 +120,6 @@ const UserManagement = () => {
       toast.error(`Permanent delete failed: ${error}`);
     }
   };
-  
 
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= totalPages) {
@@ -129,11 +128,11 @@ const UserManagement = () => {
   };
 
   const getRoleColor = (roleName) => {
-    if (roleName.includes('ADMIN')) return '#dc3545';
-    if (roleName.includes('SUPER')) return '#ffc107';
-    if (roleName.includes('WORKER')) return '#17a2b8';
-    if (roleName.includes('NORMAL')) return '#6c757d';
-    return '#007bff';
+    if (roleName.includes('ADMIN')) return 'bg-red-500';
+    if (roleName.includes('SUPER')) return 'bg-yellow-500';
+    if (roleName.includes('WORKER')) return 'bg-cyan-500';
+    if (roleName.includes('NORMAL')) return 'bg-gray-500';
+    return 'bg-blue-500';
   };
 
   const handlePageSizeChange = (e) => {
@@ -143,153 +142,278 @@ const UserManagement = () => {
     dispatch(fetchUsersWithFilter({ ...filters, pageNumber: 0, pageSize: newSize }));
   };
 
-  // ✅ Trigger role modal with user selected
   const openRoleModal = (user) => {
     setSelectedUser(user);
     setShowRoleModal(true);
   };
 
   return (
-    <div className="p-4">
-      <h2>User Management</h2>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-gray-600">Manage users, roles, and permissions</p>
+        </div>
 
-      {/* 🔍 Search and filters */}
-      <Row className="mb-3">
-        <Col md={4}>
-          <Form.Control
-            type="text"
-            placeholder="Search by name, email, or username"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-        </Col>
-        <Col md="auto">
-          <Form.Select value={pageSize} onChange={handlePageSizeChange}>
-            {[3, 5, 10, 15, 20, 25].map(size => (
-              <option key={size} value={size}>{size} per page</option>
-            ))}
-          </Form.Select>
-        </Col>
-        <Col className="d-flex align-items-center">
-          <div className="ms-auto text-muted">
-            Total Users: <strong>{totalUsers}</strong> | Page {currentPage} of {totalPages}
-          </div>
-        </Col>
-      </Row>
+        {/* Controls */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">🔍</span>
+              <input
+                type="text"
+                placeholder="Search by name, email, or username..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
 
-      {/* 🔄 Tab navigation */}
-      <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => handleTabChange(parseInt(k))} className="mb-3">
-        <Nav.Item><Nav.Link eventKey={0}>All Users</Nav.Link></Nav.Item>
-        <Nav.Item><Nav.Link eventKey={1}>Active Users</Nav.Link></Nav.Item>
-        <Nav.Item><Nav.Link eventKey={2}>Deleted Users</Nav.Link></Nav.Item>
-        <Nav.Item><Nav.Link eventKey={3}>Expired Users</Nav.Link></Nav.Item>
-      </Nav>
-
-      {loading && <Spinner animation="border" />}
-      {error && <Alert variant="danger">{error}</Alert>}
-
-      {/* 📋 User Table */}
-      <Table striped bordered hover responsive>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Username</th>
-            <th>Active</th>
-            <th>Roles</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>{user.username}</td>
-              <td>{user.accountStatus?.isActive ? 'Yes' : 'No'}</td>
-              <td>
-                {user.roles?.map(role => (
-                  <span
-                    key={role.id}
-                    style={{
-                      display: 'inline-block',
-                      padding: '4px 8px',
-                      marginRight: '5px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      color: '#fff',
-                      backgroundColor: getRoleColor(role.name),
-                    }}
-                  >
-                    {role.name.replace('ROLE_', '')}
-                  </span>
+            <div className="flex gap-4 items-center">
+              {/* Page Size Selector */}
+              <select
+                value={pageSize}
+                onChange={handlePageSizeChange}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {[3, 5, 10, 15, 20, 25].map(size => (
+                  <option key={size} value={size}>{size} per page</option>
                 ))}
-              </td>
-              <td>
-               
-                {/* ✅ Show Edit Roles only in All Users (0) or Active Users (1) tab */}
-{(activeTab === 0 || activeTab === 1) && (
-  <Button size="sm" variant="info" onClick={() => openRoleModal(user)} className="me-2">
-    Edit Roles
-  </Button>
-)}
+              </select>
 
-                {activeTab === 0 && (
-                  <>
-                    <Button size="sm" variant="warning" onClick={() => handleStatusToggle(user.id, user.accountStatus?.isActive)} className="me-2">
-                      {user.accountStatus?.isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                    <Button size="sm" variant="danger" onClick={() => handleSoftDelete(user.id)}>
-                      Soft Delete
-                    </Button>
-                  </>
-                )}
-                {activeTab === 1 && (
-                  <Button size="sm" variant="danger" onClick={() => handleSoftDelete(user.id)}>
-                    Soft Delete
-                  </Button>
-                )}
-                {activeTab === 2 && (
-                  <>
-                    <Button size="sm" variant="success" onClick={() => handleRestore(user.id)} className="me-2">
-                      Restore
-                    </Button>
-                    <Button size="sm" variant="danger" onClick={() => handlePermanentDelete(user.id)}>
-                      Permanent Delete
-                    </Button>
-                  </>
-                )}
-                {activeTab === 3 && (
-                  <Button size="sm" variant="success" onClick={() => handleStatusToggle(user.id, user.accountStatus?.isActive)}>
-                    Activate
-                  </Button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+              {/* Stats */}
+              <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+                <span className="font-medium text-gray-900">{totalUsers}</span> total users
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {/* 🔁 Pagination */}
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <Button variant="outline-primary" disabled={currentPage <= 1} onClick={() => handlePageChange(currentPage - 1)}>Previous</Button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <Button variant="outline-primary" disabled={currentPage >= totalPages} onClick={() => handlePageChange(currentPage + 1)}>Next</Button>
+        {/* Tabs */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
+                      isActive
+                        ? `border-${tab.color}-500 text-${tab.color}-600`
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-lg">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-3 text-gray-600">Loading users...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <span className="text-red-400 text-lg">⚠️</span>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Users Table */}
+        {!loading && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roles</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {users.map((user, index) => (
+                    <tr key={user.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-600">
+                                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                            <div className="text-sm text-gray-500">ID: {user.id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{user.email}</div>
+                        <div className="text-sm text-gray-500">@{user.username}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.accountStatus?.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {user.accountStatus?.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles?.map(role => (
+                            <span
+                              key={role.id}
+                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-md text-white ${getRoleColor(role.name)}`}
+                            >
+                              {role.name.replace('ROLE_', '')}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          {/* Edit Roles Button */}
+                          {(activeTab === 0 || activeTab === 1) && (
+                            <button
+                              onClick={() => openRoleModal(user)}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              ✏️ Roles
+                            </button>
+                          )}
+
+                          {/* Tab-specific actions */}
+                          {activeTab === 0 && (
+                            <>
+                              <button
+                                onClick={() => handleStatusToggle(user.id, user.accountStatus?.isActive)}
+                                className={`inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                  user.accountStatus?.isActive
+                                    ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500'
+                                    : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'
+                                }`}
+                              >
+                                {user.accountStatus?.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+                              </button>
+                              <button
+                                onClick={() => handleSoftDelete(user.id)}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </>
+                          )}
+
+                          {activeTab === 1 && (
+                            <button
+                              onClick={() => handleSoftDelete(user.id)}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                              🗑️ Delete
+                            </button>
+                          )}
+
+                          {activeTab === 2 && (
+                            <>
+                              <button
+                                onClick={() => handleRestore(user.id)}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              >
+                                ↻ Restore
+                              </button>
+                              <button
+                                onClick={() => handlePermanentDelete(user.id)}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              >
+                                ❌ Permanent
+                              </button>
+                            </>
+                          )}
+
+                          {activeTab === 3 && (
+                            <button
+                              onClick={() => handleStatusToggle(user.id, user.accountStatus?.isActive)}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            >
+                              ▶️ Activate
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 mt-6">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Showing page <span className="font-medium">{currentPage}</span> of{' '}
+              <span className="font-medium">{totalPages}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="mr-1">←</span>
+                Previous
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <span className="ml-1">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Role Editor Modal */}
+        {showRoleModal && selectedUser && (
+          <RoleEditorModal
+            show={showRoleModal}
+            user={selectedUser}
+            onClose={() => setShowRoleModal(false)}
+            onSuccess={() => {
+              dispatch(fetchUsersWithFilter({ ...filters, pageNumber: currentPage - 1, pageSize }));
+            }}
+          />
+        )}
       </div>
-
-      {/* ✅ Role Editor Modal Component */}
-      {showRoleModal && selectedUser && (
-        <RoleEditorModal
-          show={showRoleModal}
-          user={selectedUser}
-          onClose={() => setShowRoleModal(false)}
-          onSuccess={() => {
-            dispatch(fetchUsersWithFilter({ ...filters, pageNumber: currentPage - 1, pageSize }));
-          }}
-        />
-      )}
     </div>
   );
 };
