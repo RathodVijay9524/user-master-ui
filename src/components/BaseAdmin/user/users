@@ -1,0 +1,377 @@
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchAllUsers,
+  updateUserStatus,
+  setCurrentPage,
+  clearError
+} from '../../../redux/userSlice';
+
+import Table from 'react-bootstrap/Table';
+import Button from 'react-bootstrap/Button';
+import Badge from 'react-bootstrap/Badge';
+import Spinner from 'react-bootstrap/Spinner';
+import Alert from 'react-bootstrap/Alert';
+import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
+import Pagination from 'react-bootstrap/Pagination';
+import Nav from 'react-bootstrap/Nav';
+import { FaSearch, FaCheck, FaTimes } from 'react-icons/fa';
+
+const TABS = {
+  ACTIVE: 'active',
+  DELETED: 'deleted',
+  EXPIRED: 'expired',
+  ALL: 'all'
+};
+
+const UserManagement = () => {
+  const dispatch = useDispatch();
+  const {
+    users,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalUsers
+  } = useSelector((state) => state.users);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize] = useState(10);
+  const [sortBy] = useState('name');
+  const [sortDir] = useState('asc');
+  const [activeTab, setActiveTab] = useState(TABS.ACTIVE);
+
+  const getFilterParams = () => {
+    switch (activeTab) {
+      case TABS.DELETED:
+        return { isDeleted: true };
+      case TABS.EXPIRED:
+        return { isExpired: true };
+      case TABS.ACTIVE:
+        return { isDeleted: false };
+      default:
+        return {};
+    }
+  };
+
+  useEffect(() => {
+    const paginationParams = {
+      pageNumber: currentPage,
+      pageSize,
+      sortBy,
+      sortDir,
+      ...getFilterParams()
+    };
+    dispatch(fetchAllUsers(paginationParams));
+  }, [dispatch, currentPage, pageSize, sortBy, sortDir, activeTab]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    dispatch(setCurrentPage(0)); // Reset page on tab change
+  };
+
+  const handleToggleStatus = async (user) => {
+    const currentStatus = user.accountStatus?.isActive ?? true;
+    const newStatus = !currentStatus;
+    const action = currentStatus ? 'deactivate' : 'activate';
+
+    if (window.confirm(`Are you sure you want to ${action} ${user.name || user.email}?`)) {
+      try {
+        await dispatch(updateUserStatus({
+          userId: user.id,
+          status: newStatus,
+          paginationParams: {
+            pageNumber: currentPage,
+            pageSize,
+            sortBy,
+            sortDir,
+            ...getFilterParams()
+          }
+        })).unwrap();
+      } catch (error) {
+        alert(`Failed to update status: ${error.message || 'Unknown error'}`);
+      }
+    }
+  };
+
+  const getStatusBadge = (user) => {
+    const isActive = user.accountStatus?.isActive;
+    let color = '#ffc107', text = 'Unknown';
+    if (isActive === true) {
+      color = '#198754';
+      text = 'Active';
+    } else if (isActive === false) {
+      color = '#6c757d';
+      text = 'Inactive';
+    }
+    return (
+      <span style={{
+        backgroundColor: color,
+        color: 'white',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '12px'
+      }}>
+        {text}
+      </span>
+    );
+  };
+
+  const getRoleBadge = (role) => {
+    if (!role) return null;
+
+    let roleName = role.name || role.roleName || role.type || role.authority;
+    const roleMap = {
+      'ROLE_ADMIN': { label: 'Admin', color: '#dc3545' },
+      'ROLE_NORMAL': { label: 'User', color: '#0d6efd' },
+      'ROLE_WORKER': { label: 'Worker', color: '#0dcaf0' },
+      'ROLE_SUPER_USER': { label: 'Super User', color: '#ffc107' }
+    };
+    const roleInfo = roleMap[roleName] || { label: roleName?.replace('ROLE_', ''), color: '#6c757d' };
+
+    return (
+      <span style={{
+        backgroundColor: roleInfo.color,
+        color: 'white',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        marginRight: '4px'
+      }}>
+        {roleInfo.label}
+      </span>
+    );
+  };
+
+  const filteredUsers = users?.filter(user =>
+    user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      dispatch(setCurrentPage(newPage));
+    }
+  };
+
+  if (loading && !users?.length) {
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" />
+        <p className="mt-2">Loading users...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4">
+      {/* Nav Tabs */}
+      <Nav variant="tabs" activeKey={activeTab} onSelect={handleTabChange} className="mb-4">
+        <Nav.Item>
+          <Nav.Link eventKey={TABS.ACTIVE}>Active Users</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey={TABS.DELETED}>Deleted Users</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey={TABS.EXPIRED}>Expired Users</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey={TABS.ALL}>All Users</Nav.Link>
+        </Nav.Item>
+      </Nav>
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>User Management</h2>
+        <Form className="w-50">
+          <InputGroup>
+            <Form.Control
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button variant="outline-secondary">
+              <FaSearch />
+            </Button>
+          </InputGroup>
+        </Form>
+      </div>
+
+      {error && (
+        <Alert variant="danger" onClose={() => dispatch(clearError())} dismissible>
+          {error}
+        </Alert>
+      )}
+
+      <div className="table-responsive">
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Roles</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.map((user) => (
+              <tr key={user.id}>
+                <td>{user.id}</td>
+                <td>{user.name || 'N/A'}</td>
+                <td>{user.username}</td>
+                <td>{user.email}</td>
+                <td>
+                  {Array.isArray(user.roles) && user.roles.length > 0
+                    ? user.roles.map((role, index) => (
+                        <span key={index}>{getRoleBadge(role)}</span>
+                      ))
+                    : <Badge bg="secondary">No roles</Badge>}
+                </td>
+                <td>{getStatusBadge(user)}</td>
+                <td>
+                  <Button
+                    variant={user.accountStatus?.isActive ? 'outline-danger' : 'outline-success'}
+                    size="sm"
+                    title={user.accountStatus?.isActive ? 'Deactivate User' : 'Activate User'}
+                    onClick={() => handleToggleStatus(user)}
+                  >
+                    {user.accountStatus?.isActive ? <FaCheck /> : <FaTimes />}
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+
+        {/* Pagination */}
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div>Total Users: {totalUsers}</div>
+          <Pagination className="m-0">
+            <Pagination.Prev
+              disabled={currentPage === 0}
+              onClick={() => handlePageChange(currentPage - 1)}
+            />
+            {[...Array(totalPages).keys()].map((page) => (
+              <Pagination.Item
+                key={page}
+                active={page === currentPage}
+                onClick={() => handlePageChange(page)}
+              >
+                {page + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              disabled={currentPage === totalPages - 1}
+              onClick={() => handlePageChange(currentPage + 1)}
+            />
+          </Pagination>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserManagement;
+
+//-------------------------------------------------
+// redux/userSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axiosInstance from './axiosInstance';
+
+export const fetchAllUsers = createAsyncThunk(
+  'users/fetchAll',
+  async ({ pageNumber = 0, pageSize = 10, sortBy = 'name', sortDir = 'asc' }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get('/users/active', {
+        params: {
+          pageNumber,
+          pageSize,
+          sortBy,
+          sortDir
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch users');
+    }
+  }
+);
+
+export const updateUserStatus = createAsyncThunk(
+  'users/updateStatus',
+  async ({ userId, status, pagination }, { rejectWithValue, dispatch }) => {
+    try {
+      await axiosInstance.patch(`/users/${userId}/status`, null, {
+        params: { isActive: status }
+      });
+
+      // Refetch paginated users to reflect status update
+      await dispatch(fetchAllUsers(pagination));
+
+      return { userId, status };
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      return rejectWithValue(
+        error.response?.data?.message || 'Error updating user status'
+      );
+    }
+  }
+);
+
+const userSlice = createSlice({
+  name: 'users',
+  initialState: {
+    users: [],
+    loading: false,
+    error: null,
+    currentPage: 0,
+    totalPages: 1,
+    totalUsers: 0,
+    pageSize: 10
+  },
+  reducers: {
+    setCurrentPage: (state, action) => {
+      state.currentPage = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload.content || [];
+        state.totalPages = action.payload.totalPages || 1;
+        state.totalUsers = action.payload.totalElements || 0;
+        state.currentPage = action.payload.pageNumber || 0;
+      })
+
+      .addCase(fetchAllUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch users';
+      })
+      .addCase(updateUserStatus.fulfilled, (state, action) => {
+        const { userId, status } = action.payload;
+        const user = state.users.find(u => u.id === userId);
+        if (user && user.accountStatus) {
+          user.accountStatus.isActive = status;
+        }
+      });
+  }
+});
+
+export const { setCurrentPage, clearError } = userSlice.actions;
+//export default userSlice.reducer;
+

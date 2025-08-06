@@ -1,0 +1,83 @@
+/* BaseUser Layout Styles */
+.user-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  position: relative;
+  width: 100%;
+}
+
+.user-content {
+  flex: 1;
+  margin-left: 250px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 250px);
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.user-layout.sidebar-collapsed .user-content {
+  margin-left: 70px;
+  width: calc(100% - 70px);
+}
+
+.user-content.full-width {
+  margin-left: 0;
+}
+
+/* Top Navigation */
+.user-navbar {
+  flex-shrink: 0;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 90px 20px 20px; /* Account for navbar height */
+  overflow-y: auto;
+}
+
+.container-fluid {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Footer */
+footer {
+  flex-shrink: 0;
+  background: #fff;
+  padding: 15px 20px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Backdrop for mobile sidebar */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050; /* Higher than sidebar but lower than dropdown */
+  transition: opacity 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .user-content {
+    margin-left: 0;
+  }
+  
+  .main-content {
+    padding: 90px 10px 10px;
+  }
+  
+  footer {
+    padding: 10px 15px;
+    font-size: 0.8rem;
+  }
+}

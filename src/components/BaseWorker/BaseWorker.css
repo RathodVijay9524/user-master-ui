@@ -1,0 +1,98 @@
+/* Base Worker Layout */
+.worker-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  position: relative;
+  width: 100%;
+}
+
+/* Content Area - Default state with sidebar open */
+.worker-content {
+  flex: 1;
+  margin-left: 250px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 250px);
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* When sidebar is collapsed on desktop */
+.worker-layout.sidebar-collapsed .worker-content {
+  margin-left: 70px;
+  width: calc(100% - 70px);
+}
+
+/* Mobile responsive styles */
+@media (max-width: 992px) {
+  .worker-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  margin-top: 70px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 120px);
+  transition: all 0.3s ease;
+}
+
+/* Footer */
+.worker-footer {
+  background: #fff;
+  padding: 15px 25px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+  .worker-sidebar {
+    transform: translateX(-100%);
+    z-index: 1050;
+  }
+  
+  .worker-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .worker-content {
+    margin-left: 0;
+  }
+  
+  .worker-sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+}
+
+/* Backdrop for mobile sidebar */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  transition: opacity 0.3s ease;
+}
+
+/* Ensure content is properly layered */
+.worker-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Container for content */
+.container-fluid {
+  padding: 0 15px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
