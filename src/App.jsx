@@ -28,6 +28,7 @@ import { ToastContainer } from 'react-toastify';
 import ForgotPassword from './components/public/pages/ForgotPassword';
 import ResetPassword from './components/public/pages/ResetPassword';
 import NotFoundPage from './components/public/NotFoundPage ';
+import VerifyAccount from './components/public/pages/VerifyAccount';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -185,7 +186,17 @@ if (loading) {
               <Footer />
             </>
           }
-        />
+        /><Route
+        path="/verify"
+        element={
+          <>
+            <PublicNavbar />
+            <VerifyAccount />
+            <Footer />
+          </>
+        }
+      />
+      
        
 
         {/* Catch-all Route */}
