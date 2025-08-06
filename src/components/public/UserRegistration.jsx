@@ -43,6 +43,7 @@ const UserRegistration = () => {
       setLoading(false);
       setSuccess(response.data);
       setError(null);
+      handleReset();
     } catch (err) {
       setLoading(false);
       setError(err.response && err.response.data ? err.response.data : "Registration failed.");

@@ -52,6 +52,9 @@ const Login = () => {
     }
   }, [dispatch]);
 
+  const handleForgotPassword = () => {
+  }
+
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -82,6 +85,10 @@ const Login = () => {
                 {loading ? 'Logging in...' : 'Login'}
               </button>
             </form>
+            <button className="btn btn-link mt-3 p-0 text-left" onClick={handleForgotPassword}>
+              Forgot Password?
+            </button>
+
             <div className="mt-4 text-center">
               Dont have an account? <Link to="/">Register here</Link>
             </div>
