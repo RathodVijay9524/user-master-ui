@@ -4,7 +4,8 @@ import { FaHome, FaTools, FaPhone, FaUser, FaBars, FaTimes, FaInfoCircle } from 
 
 const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
+
+  const [currentPath, setCurrentPath] = useState('/');
 
   const navItems = [
     { title: 'Home', path: '/', icon: <FaHome /> },
@@ -14,16 +15,26 @@ const PublicNavbar = () => {
     { title: 'Login', path: '/login', icon: <FaUser /> }
   ];
 
+
+
+  const handleNavClick = () => {
+    setIsOpen(false);
+  };
+
   const styles = {
     navbar: {
       background: 'rgba(255, 255, 255, 0.98)',
       backdropFilter: 'blur(10px)',
       borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-      position: 'sticky',
+      position: 'fixed',
       top: '0',
+      left: '0',
+      right: '0',
       zIndex: '1000',
       boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      transform: 'translateY(0)',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     },
     navContainer: {
       maxWidth: '1200px',
@@ -46,7 +57,8 @@ const PublicNavbar = () => {
       transition: 'all 0.3s ease',
       display: 'flex',
       alignItems: 'center',
-      gap: '8px'
+      gap: '8px',
+      cursor: 'pointer'
     },
     mobileMenuIcon: {
       display: 'none',
@@ -98,7 +110,8 @@ const PublicNavbar = () => {
       fontSize: '16px',
       transition: 'all 0.3s ease',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      cursor: 'pointer'
     },
     navLinkMobile: {
       display: 'flex',
@@ -111,7 +124,8 @@ const PublicNavbar = () => {
       fontWeight: '500',
       fontSize: '16px',
       transition: 'all 0.3s ease',
-      width: '100%'
+      width: '100%',
+      cursor: 'pointer'
     },
     navLinkActive: {
       background: 'rgba(59, 130, 246, 0.1)',
@@ -156,7 +170,8 @@ const PublicNavbar = () => {
       justifyContent: 'center',
       gap: '8px',
       marginTop: '16px',
-      width: '100%'
+      width: '100%',
+      cursor: 'pointer'
     },
     desktopMenu: {
       display: 'flex',
@@ -168,7 +183,10 @@ const PublicNavbar = () => {
       color: 'white',
       textAlign: 'center',
       padding: '12px 0',
-      fontSize: '14px'
+      fontSize: '14px',
+      marginTop: '70px', // Add space for fixed navbar
+      position: 'relative',
+      zIndex: '999'
     },
     notificationContent: {
       display: 'flex',
@@ -183,7 +201,21 @@ const PublicNavbar = () => {
       color: 'white',
       textDecoration: 'underline',
       fontWeight: '600',
-      transition: 'all 0.2s ease'
+      transition: 'all 0.2s ease',
+      cursor: 'pointer'
+    },
+    demoContent: {
+      padding: '40px 24px',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      lineHeight: '1.8'
+    },
+    demoSection: {
+      marginBottom: '60px',
+      padding: '40px',
+      background: '#f8fafc',
+      borderRadius: '16px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
     }
   };
 
@@ -247,10 +279,15 @@ const PublicNavbar = () => {
     <div>
       <div dangerouslySetInnerHTML={{ __html: hoverStyles }} />
       
+      {/* Fixed Sticky Navbar */}
       <nav style={styles.navbar}>
         <div style={styles.navContainer}>
           {/* Logo */}
-          <Link to="/" style={styles.logo} className="logo">
+          <Link 
+            to="/"
+            style={styles.logo} 
+            className="logo"
+          >
             YourLogo
           </Link>
 
@@ -266,7 +303,7 @@ const PublicNavbar = () => {
                       ...(location.pathname === item.path ? styles.navLinkActive : {})
                     }}
                     className="nav-link"
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleNavClick}
                   >
                     <span style={{ fontSize: '18px' }}>{item.icon}</span>
                     <span>{item.title}</span>
@@ -308,9 +345,7 @@ const PublicNavbar = () => {
                   ...(location.pathname === item.path ? styles.navLinkActiveMobile : {})
                 }}
                 className="nav-link-mobile"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
+                onClick={handleNavClick}
               >
                 <span style={{ fontSize: '20px' }}>{item.icon}</span>
                 <span>{item.title}</span>
@@ -322,7 +357,7 @@ const PublicNavbar = () => {
               to="/register"
               style={styles.ctaButtonMobile}
               className="cta-button"
-              onClick={() => setIsOpen(false)}
+              onClick={handleNavClick}
             >
               <span>Get Started</span>
               <span>🚀</span>
@@ -345,6 +380,8 @@ const PublicNavbar = () => {
           </Link>
         </div>
       </div>
+
+    
     </div>
   );
 };

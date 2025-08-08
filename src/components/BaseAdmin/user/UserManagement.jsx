@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import RoleEditorModal from './RoleEditorModal';
+import UserDetailsModal from './UserDetailsModal';
 import { toast } from 'react-toastify';
 
 import {
@@ -31,6 +32,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [viewedUser, setViewedUser] = useState(null);
 
   const tabs = [
     { id: 0, label: 'All Users', icon: '👥', color: 'blue' },
@@ -200,11 +203,10 @@ const UserManagement = () => {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                      isActive
-                        ? `border-${tab.color}-500 text-${tab.color}-600`
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${isActive
+                      ? `border-${tab.color}-500 text-${tab.color}-600`
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
                   >
                     <span className="text-lg">{tab.icon}</span>
                     <span>{tab.label}</span>
@@ -273,14 +275,13 @@ const UserManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{user.email}</div>
-                        <div className="text-sm text-gray-500">@{user.username}</div>
+
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.accountStatus?.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.accountStatus?.isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                          }`}>
                           {user.accountStatus?.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
@@ -299,13 +300,16 @@ const UserManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           {/* Edit Roles Button */}
+
                           {(activeTab === 0 || activeTab === 1) && (
-                            <button
-                              onClick={() => openRoleModal(user)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                              ✏️ Roles
-                            </button>
+                            <>
+                              <button
+                                onClick={() => openRoleModal(user)}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              >
+                                ✏️ Roles
+                              </button>
+                            </>
                           )}
 
                           {/* Tab-specific actions */}
@@ -313,11 +317,10 @@ const UserManagement = () => {
                             <>
                               <button
                                 onClick={() => handleStatusToggle(user.id, user.accountStatus?.isActive)}
-                                className={`inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                  user.accountStatus?.isActive
-                                    ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500'
-                                    : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'
-                                }`}
+                                className={`inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${user.accountStatus?.isActive
+                                  ? 'text-orange-700 bg-orange-100 hover:bg-orange-200 focus:ring-orange-500'
+                                  : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'
+                                  }`}
                               >
                                 {user.accountStatus?.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
                               </button>
@@ -331,12 +334,23 @@ const UserManagement = () => {
                           )}
 
                           {activeTab === 1 && (
-                            <button
-                              onClick={() => handleSoftDelete(user.id)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                            >
-                              🗑️ Delete
-                            </button>
+                            <>
+                              <button
+                                onClick={() => {
+                                  setViewedUser(user);
+                                  setShowUserModal(true);
+                                }}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              >
+                                👁 View
+                              </button>
+                              <button
+                                onClick={() => handleSoftDelete(user.id)}
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </>
                           )}
 
                           {activeTab === 2 && (
@@ -413,6 +427,14 @@ const UserManagement = () => {
             }}
           />
         )}
+        {showUserModal && viewedUser && (
+          <UserDetailsModal
+            show={showUserModal}
+            user={viewedUser}
+            onClose={() => setShowUserModal(false)}
+          />
+        )}
+
       </div>
     </div>
   );

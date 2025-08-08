@@ -38,7 +38,7 @@ const Footer = () => {
       <div className="footer-bottom">
         <p>&copy; {currentYear} Your Company Name. All rights reserved.</p>
         <p className="developer-credit">
-          Developed by <a href="https://yourportfolio.com" target="_blank" rel="noopener noreferrer">Your Name</a>
+          Developed by <a href="https://yourportfolio.com" target="_blank" rel="noopener noreferrer">Vijay Rathod</a>
         </p>
       </div>
     </footer>

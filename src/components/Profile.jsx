@@ -5,17 +5,21 @@ import { setUser } from '../redux/authSlice';
 import axiosInstance from '../redux/axiosInstance';
 import './Profile.css';
 import { toast } from 'react-toastify';
+import PasswordChangeModal from './public/pages/PasswordChangeModal'; // adjust path if needed
+
 
 const Profile = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { imageUploadLoading, imageUploadError, imageError } = useSelector((state) => state.users);
   const fileInputRef = useRef(null);
-  
+
   const [profileImage, setProfileImage] = useState(null);
   const [previewImage, setPreviewImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
 
   // Load uploaded image URL from localStorage on component mount
   useEffect(() => {
@@ -31,7 +35,7 @@ const Profile = () => {
       try {
         setLoading(true);
         console.log('Current user:', user);
-        
+
         if (user && user.imageName) {
           console.log('Fetching user image for user ID:', user.id);
           try {
@@ -75,7 +79,7 @@ const Profile = () => {
     }
 
     console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
-    
+
     setPreviewImage(URL.createObjectURL(file));
     setProfileImage(file);
 
@@ -83,25 +87,25 @@ const Profile = () => {
       console.log('Dispatching uploadImage...');
       const response = await dispatch(uploadImage(file)).unwrap();
       console.log('Upload response:', response);
-      
+
       // Handle different response structures
       if (response && (response.success || response.data || response.message === 'Image uploaded successfully')) {
         toast.success('Profile image updated successfully');
-        
+
         // Update user state with new image name
         if (response.imageName && user) {
           const updatedUser = { ...user, imageName: response.imageName };
           dispatch(setUser(updatedUser));
           // Also update localStorage
           localStorage.setItem('user', JSON.stringify(updatedUser));
-          
+
           // Store the uploaded image URL for persistence (like UserManagement stores data)
           const imageUrl = `${axiosInstance.defaults.baseURL}/users/image/${user.id}?t=${Date.now()}`;
           setUploadedImageUrl(imageUrl);
           localStorage.setItem('uploadedImageUrl', imageUrl);
           localStorage.setItem('userImageName', response.imageName);
         }
-        
+
         // Refresh user data to get updated image
         if (user?.id) {
           dispatch(getUserImage(user.id));
@@ -111,14 +115,14 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Upload error:', error);
-      
+
       // Clear preview on error
       setPreviewImage('');
       setProfileImage(null);
-      
+
       // Handle different error types
       let errorMessage = 'Failed to upload profile image';
-      
+
       // Check if it's the known backend Java error
       if (error.message && error.message.includes('CompletableFuture.get()')) {
         errorMessage = '⚠️ Backend server issue detected. The image was uploaded but couldn\'t be processed. Please contact the system administrator to fix the Java backend error.';
@@ -131,7 +135,7 @@ const Profile = () => {
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       toast.error(errorMessage, {
         autoClose: 8000, // Show longer for backend errors
         position: 'top-center'
@@ -186,15 +190,15 @@ const Profile = () => {
             <h2>User Profile</h2>
             <p className="profile-subtitle">Manage your account information</p>
           </div>
-          
+
           <div className="profile-content">
             <div className="profile-info">
               <div className="profile-image-section">
                 <div className="profile-image-container">
                   {previewImage || uploadedImageUrl || (user?.imageName) ? (
-                    <img 
-                      src={previewImage || uploadedImageUrl || `${axiosInstance.defaults.baseURL}/users/image/${user.id}?t=${Date.now()}`} 
-                      alt="Profile" 
+                    <img
+                      src={previewImage || uploadedImageUrl || `${axiosInstance.defaults.baseURL}/users/image/${user.id}?t=${Date.now()}`}
+                      alt="Profile"
                       className="profile-image"
                       onClick={() => fileInputRef.current.click()}
                       onError={(e) => {
@@ -207,39 +211,49 @@ const Profile = () => {
                       }}
                     />
                   ) : null}
-                  
-                  <div 
+
+                  <div
                     className={`default-avatar ${previewImage || user?.imageName ? 'hidden' : ''}`}
                     onClick={() => fileInputRef.current.click()}
                   >
                     <span className="avatar-initials">{getDefaultAvatar()}</span>
                   </div>
-                  
+
                   <div className="upload-overlay">
                     <span className="upload-text">Click to upload</span>
                   </div>
-                  
-                  <input 
-                    type="file" 
+
+                  <input
+                    type="file"
                     ref={fileInputRef}
                     accept="image/*"
                     onChange={handleImageUpload}
                     style={{ display: 'none' }}
                   />
-                  
+
                   {previewImage && (
-                    <button 
+                    <button
                       onClick={() => {
                         setPreviewImage('');
                         setProfileImage(null);
-                      }} 
+                      }}
                       className="remove-image-btn"
                     >
                       ✕
                     </button>
                   )}
                 </div>
+                <div className="profile-field">
+                  <button
+                    onClick={() => setShowPasswordModal(true)}
+                    className="mt-4 px-4 py-2 bg-blue-200 text-white rounded hover:bg-blue-700 transition"
+                  >
+                    Change Password
+                  </button>
+                </div>
               </div>
+
+          
 
               <div className="profile-details">
                 <div className="profile-field">
@@ -307,12 +321,25 @@ const Profile = () => {
                   <h3>📝 About</h3>
                   <p>{user?.about || defaultUser.about}</p>
                 </div>
+               
               </div>
             </div>
           </div>
+          {showPasswordModal && (
+            <PasswordChangeModal
+              show={showPasswordModal}
+              onClose={() => setShowPasswordModal(false)}
+              onSuccess={() => {
+                // Optionally do something after successful password change
+                toast.success('Password changed successfully!');
+              }}
+            />
+          )}
+
         </>
       )}
     </div>
+
   );
 };
 

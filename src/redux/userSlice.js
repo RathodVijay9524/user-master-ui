@@ -182,6 +182,22 @@ export const getUserImage = createAsyncThunk('users/getUserImage', async (userId
   }
 });
 
+export const changePassword = createAsyncThunk(
+  'users/changePassword',
+  async ({ currentPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put('/auth/change-password', {
+        oldPassword: currentPassword,  // backend expects 'oldPassword'
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to change password');
+    }
+  }
+);
+
+
 const userSlice = createSlice({
   name: 'users',
   initialState: {
@@ -260,6 +276,7 @@ const userSlice = createSlice({
       .addCase(getUserImage.rejected, (state, action) => {
         state.imageError = action.payload ? action.payload : { errorMessage: 'Failed to get image' };
       });
+      
   }
 });
 
