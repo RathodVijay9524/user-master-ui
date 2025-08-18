@@ -3,20 +3,49 @@ import { FaBars, FaBell, FaUserCircle, FaSignOutAlt, FaCog, FaHardHat } from 're
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../redux/authSlice';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../../../redux/axiosInstance';
+import { getUserImage } from '../../../redux/userSlice';
 import './AdminNavbar.css';
 
 const AdminNavbar = ({ toggleSidebar }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+
   const [showDropdown, setShowDropdown] = useState(false);
+  const [userImageUrl, setUserImageUrl] = useState('');
+  const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Fetch user image
+  useEffect(() => {
+    const fetchUserImage = async () => {
+      if (!user?.id) return;
+      setImageError(false);
+      try {
+        const result = await dispatch(getUserImage(user.id)).unwrap();
+        if (result) {
+          const imageUrl = `${axiosInstance.defaults.baseURL}/users/image/${user.id}?t=${Date.now()}`;
+          setUserImageUrl(imageUrl);
+        } else {
+          setUserImageUrl('');
+        }
+      } catch (error) {
+        console.warn('Failed to load user image:', error);
+        setUserImageUrl('');
+        setImageError(true);
+      }
+    };
+
+    if (user?.id) {
+      fetchUserImage();
+    }
+  }, [user, dispatch]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        // Check if the click is not on the user button
         const userBtn = document.querySelector('.user-btn');
         if (userBtn && !userBtn.contains(event.target)) {
           setShowDropdown(false);
@@ -40,7 +69,7 @@ const AdminNavbar = ({ toggleSidebar }) => {
     setShowDropdown(!showDropdown);
   };
 
-    // Determine roles
+  // Determine roles
   const hasAdminRole = user?.roles?.some((role) => role.name === 'ROLE_ADMIN');
   const hasUserRole = user?.roles?.some((role) => role.name === 'ROLE_NORMAL');
   const hasWorkerRole = user?.roles?.some((role) => role.name === 'ROLE_WORKER');
@@ -72,7 +101,16 @@ const AdminNavbar = ({ toggleSidebar }) => {
             aria-expanded={showDropdown}
             aria-haspopup="true"
           >
-            <FaUserCircle className="user-avatar" />
+            {userImageUrl && !imageError ? (
+              <img 
+                src={userImageUrl} 
+                alt="User Avatar" 
+                className="user-avatar-img"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <FaUserCircle className="user-avatar" />
+            )}
             <span className="username" style={{color :'#ff9800'}} >
               {user?.username || 'Admin User'}
             </span>
@@ -81,7 +119,16 @@ const AdminNavbar = ({ toggleSidebar }) => {
           {showDropdown && (
             <div className="dropdown-menu show" role="menu">
               <div className="dropdown-header">
-                <FaUserCircle className="dropdown-avatar" />
+                {userImageUrl && !imageError ? (
+                  <img 
+                    src={userImageUrl} 
+                    alt="User Avatar" 
+                    className="dropdown-avatar-img"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <FaUserCircle className="dropdown-avatar" />
+                )}
                 <div className="user-info">
                   <div className="user-name">{user?.username || 'Admin User'}</div>
                   <div className="user-email">{user?.email || 'admin@example.com'}</div>

@@ -49,11 +49,11 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Side - Welcome Section */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-800 p-8 text-white">
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-800 p-4 text-white">
         <div className="max-w-md mx-auto h-full flex flex-col justify-center">
           <div className="text-center mb-10">
-            <div className="w-20 h-20 mx-auto mb-6 text-5xl animate-bounce">✨</div>
-            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
+            <div className="w-20 h-20 mx-auto mb-1 text-5xl animate-bounce">✨</div>
+            <h1 className="text-4xl font-bold mb-1 bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
               Welcome Back!
             </h1>
             <p className="text-xl text-emerald-100 leading-relaxed">

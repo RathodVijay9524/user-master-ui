@@ -14,6 +14,20 @@
   transition: left 0.3s ease, width 0.3s ease;
   width: calc(100% - 250px);
 }
+.user-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+ 
+}
+
+.dropdown-avatar-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  
+}
+
 
 /* When sidebar is collapsed on desktop */
 .admin-layout.sidebar-collapsed .admin-navbar {
