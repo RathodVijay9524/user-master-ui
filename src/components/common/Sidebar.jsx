@@ -61,7 +61,17 @@ const Sidebar = ({ isOpen, isCollapsed, toggleSidebar, isMobile }) => {
       )}
       <div
         className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobile && isOpen ? 'mobile-open' : ''}`}
-        style={isMobile && isOpen ? { zIndex: 999, position: 'fixed', height: '100vh' } : {}}
+        style={
+          isMobile && isOpen
+            ? {
+                zIndex: 1001, // Ensure sidebar is above backdrop
+                position: 'fixed',
+                height: '100vh',
+                left: 0,
+                top: 0,
+              }
+            : {}
+        }
       >
         <div className="sidebar-header">
           {!isCollapsed && <h3>Admin Panel</h3>}
