@@ -1,0 +1,51 @@
+name: Deploy UI to GitHub Pages
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+      - run: |
+          # Build (Vite uses 'dist', CRA uses 'build')
+          if npm run | grep -q "build"; then
+            npm run build
+          else
+            echo "No build script found" && exit 1
+          fi
+
+      - name: Pick artifact dir
+        id: pick
+        run: |
+          if [ -d dist ]; then echo "ARTIFACT=dist" >> $GITHUB_OUTPUT; \
+          elif [ -d build ]; then echo "ARTIFACT=build" >> $GITHUB_OUTPUT; \
+          else echo "No dist/build folder found"; exit 1; fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.pick.outputs.ARTIFACT }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

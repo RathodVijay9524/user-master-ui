@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:9091/api',
+  baseURL: 'https://api.codewithvijay.online/api',
 });
 
 // Request interceptor to add the JWT token to headers

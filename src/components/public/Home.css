@@ -202,6 +202,26 @@
   margin-right: auto;
 }
 
+/* Hover Effects */
+.hover-effect {
+  transition: 
+    background 0.3s cubic-bezier(0.4,0,0.2,1),
+    color 0.3s cubic-bezier(0.4,0,0.2,1),
+    box-shadow 0.3s cubic-bezier(0.4,0,0.2,1),
+    transform 0.2s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+}
+
+.hover-effect:hover,
+.hover-effect:focus {
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  color: #fff !important;
+  box-shadow: 0 6px 24px rgba(59,130,246,0.18);
+  transform: translateY(-2px) scale(1.04);
+  text-decoration: none;
+  outline: none;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero h1 {

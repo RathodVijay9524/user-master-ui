@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaHome, FaTools, FaPhone, FaUser, FaBars, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import logo from '../../assets/logo.png'
 
 const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const [currentPath, setCurrentPath] = useState('/');
+  const [showNotification, setShowNotification] = useState(true);
+  const location = useLocation(); // useLocation for active nav
 
   const navItems = [
     { title: 'Home', path: '/', icon: <FaHome /> },
@@ -45,21 +46,24 @@ const PublicNavbar = () => {
       alignItems: 'center',
       height: '70px'
     },
-    logo: {
-      fontSize: '28px',
-      fontWeight: 'bold',
-      color: '#111827',
-      textDecoration: 'none',
-      background: 'linear-gradient(45deg, #3b82f6, #8b5cf6)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      backgroundClip: 'text',
-      transition: 'all 0.3s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      cursor: 'pointer'
-    },
+  logo: {
+  fontSize: '28px',
+  fontWeight: 'bold',
+  textDecoration: 'none',
+  background: 'linear-gradient(45deg, #3b82f6, #8b5cf6)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+  transition: 'all 0.3s ease',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  cursor: 'pointer',
+
+  lineHeight: '1',    // fixes extra bottom spacing
+  paddingTop: '4px',  // tiny adjustment
+}
+,
     mobileMenuIcon: {
       display: 'none',
       color: '#4b5563',
@@ -280,15 +284,16 @@ const PublicNavbar = () => {
       <div dangerouslySetInnerHTML={{ __html: hoverStyles }} />
       
       {/* Fixed Sticky Navbar */}
-      <nav style={styles.navbar}>
+      <nav style={styles.navbar} role="navigation" aria-label="Main Navigation">
         <div style={styles.navContainer}>
           {/* Logo */}
           <Link 
             to="/"
             style={styles.logo} 
             className="logo"
+            aria-label="Home"
           >
-            YourLogo
+           <img src={logo} alt="My Logo" width="150" />
           </Link>
 
           {/* Desktop Menu */}
@@ -304,6 +309,7 @@ const PublicNavbar = () => {
                     }}
                     className="nav-link"
                     onClick={handleNavClick}
+                    aria-current={location.pathname === item.path ? "page" : undefined}
                   >
                     <span style={{ fontSize: '18px' }}>{item.icon}</span>
                     <span>{item.title}</span>
@@ -317,9 +323,19 @@ const PublicNavbar = () => {
               to="/register"
               style={styles.ctaButton}
               className="cta-button"
+              aria-label="Get Started"
             >
               <span>Get Started</span>
               <span>🚀</span>
+              <span style={{
+                background: '#22c55e',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '12px',
+                borderRadius: '6px',
+                padding: '2px 8px',
+                marginLeft: '8px'
+              }}>Free</span>
             </Link>
           </div>
 
@@ -328,6 +344,13 @@ const PublicNavbar = () => {
             style={styles.mobileMenuIcon}
             className="mobile-menu-icon"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') setIsOpen(!isOpen);
+            }}
           >
             {isOpen ? <FaTimes /> : <FaBars />}
           </button>
@@ -335,7 +358,7 @@ const PublicNavbar = () => {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div style={styles.navMenuMobile}>
+          <div style={styles.navMenuMobile} id="mobile-menu" role="menu">
             {navItems.map((item, index) => (
               <Link
                 key={index}
@@ -346,42 +369,68 @@ const PublicNavbar = () => {
                 }}
                 className="nav-link-mobile"
                 onClick={handleNavClick}
+                aria-current={location.pathname === item.path ? "page" : undefined}
+                role="menuitem"
               >
                 <span style={{ fontSize: '20px' }}>{item.icon}</span>
                 <span>{item.title}</span>
               </Link>
             ))}
-            
             {/* Mobile CTA Button */}
             <Link 
               to="/register"
               style={styles.ctaButtonMobile}
               className="cta-button"
               onClick={handleNavClick}
+              aria-label="Get Started"
+              role="menuitem"
             >
               <span>Get Started</span>
               <span>🚀</span>
+              <span style={{
+                background: '#22c55e',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '12px',
+                borderRadius: '6px',
+                padding: '2px 8px',
+                marginLeft: '8px'
+              }}>Free</span>
             </Link>
           </div>
         )}
       </nav>
 
-      {/* Notification Bar */}
-      <div style={styles.notificationBar}>
-        <div style={styles.notificationContent}>
-          <span>🎉</span>
-          <span>New features available! Check out our latest updates.</span>
-          <Link 
-            to="/services"
-            style={styles.notificationLink}
-            className="notification-link"
-          >
-            Learn More
-          </Link>
+      {/* Notification Bar (dismissible) */}
+      {showNotification && (
+        <div style={styles.notificationBar} role="status" aria-live="polite">
+          <div style={styles.notificationContent}>
+            <span>🎉</span>
+            <span>New features available! Check out our latest updates.</span>
+            <Link 
+              to="/services"
+              style={styles.notificationLink}
+              className="notification-link"
+            >
+              Learn More
+            </Link>
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                marginLeft: '16px',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}
+              aria-label="Dismiss notification"
+              onClick={() => setShowNotification(false)}
+            >
+              <FaTimes />
+            </button>
+          </div>
         </div>
-      </div>
-
-    
+      )}
     </div>
   );
 };

@@ -45,8 +45,8 @@ const Home = () => {
 
         {/* CTA Buttons */}
         <div className="cta-buttons">
-          <Link to="/login" className="btn primary">Login</Link>
-          <Link to="/register" className="btn secondary">Create Account</Link>
+          <Link to="/login" className="btn primary hover-effect">Login</Link>
+          <Link to="/register" className="btn secondary hover-effect">Create Account</Link>
         </div>
       </section>
 
