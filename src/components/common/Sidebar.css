@@ -136,14 +136,35 @@
   margin-top: 2px;
 }
 
+/* Add backdrop for mobile sidebar */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.3);
+  z-index: 998;
+}
+
 /* Responsive styles */
 @media (max-width: 992px) {
   .sidebar {
     transform: translateX(-100%);
+    z-index: 999;
+    position: fixed;
+    height: 100vh;
+    top: 0;
+    left: 0;
   }
   
   .sidebar.mobile-open {
     transform: translateX(0);
+    z-index: 999;
+    position: fixed;
+    height: 100vh;
+    top: 0;
+    left: 0;
   }
   
   .sidebar.collapsed {
