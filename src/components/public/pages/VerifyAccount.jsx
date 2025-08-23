@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import axiosInstance from '../../../redux/axiosInstance';
 
 const VerifyAccount = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +14,7 @@ const VerifyAccount = () => {
   useEffect(() => {
     const verifyAccount = async () => {
       try {
-        const res = await axios.get(`http://localhost:9091/api/v1/home/verify`, {
+        const res = await axiosInstance.get(`/v1/home/verify`, {
           params: { uid, code },
         });
 
