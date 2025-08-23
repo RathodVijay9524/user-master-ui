@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaLock, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
+import axiosInstance from '../../../redux/axiosInstance';
 
 const ResetPassword = () => {
   const [params] = useSearchParams();
@@ -34,7 +34,7 @@ const ResetPassword = () => {
     const verifyLink = async () => {
       try {
         setIsLoading(true);
-        await axios.get(`http://localhost:9091/api/v1/home/verify-pswd-link`, {
+        await axiosInstance.get(`/v1/home/verify-pswd-link`, {
           params: { uid, code: token },
         });
         setIsLoading(false);
@@ -57,7 +57,7 @@ const ResetPassword = () => {
 
     try {
       setIsLoading(true);
-      await axios.post(`http://localhost:9091/api/v1/home/reset-password`, {
+      await axiosInstancepost(`/v1/home/reset-password`, {
         uid,
         token,
         newPassword,
@@ -92,8 +92,8 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           className="flex items-center text-emerald-600 hover:text-emerald-800 mb-4"
         >
           <FaArrowLeft className="mr-2" /> Back
@@ -123,7 +123,7 @@ const ResetPassword = () => {
                 minLength="8"
               />
             </div>
-            
+
             {/* Password validation checklist */}
             <div className="mt-2 space-y-1 text-sm text-gray-600">
               <div className={`flex items-center ${passwordValidations.hasMinLength ? 'text-emerald-600' : ''}`}>
@@ -160,11 +160,10 @@ const ResetPassword = () => {
           <button
             type="submit"
             disabled={isLoading || newPassword !== confirmPassword || !passwordValidations.hasMinLength || !passwordValidations.hasNumber || !passwordValidations.hasSpecialChar}
-            className={`w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center ${
-              isLoading || newPassword !== confirmPassword || !passwordValidations.hasMinLength || !passwordValidations.hasNumber || !passwordValidations.hasSpecialChar
+            className={`w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center ${isLoading || newPassword !== confirmPassword || !passwordValidations.hasMinLength || !passwordValidations.hasNumber || !passwordValidations.hasSpecialChar
                 ? 'opacity-50 cursor-not-allowed'
                 : ''
-            }`}
+              }`}
           >
             {isLoading ? (
               <>
