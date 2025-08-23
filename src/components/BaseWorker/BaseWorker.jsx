@@ -25,10 +25,6 @@ const BaseWorker = () => {
       setIsSidebarCollapsed(!isSidebarCollapsed);
     }
   };
-
-  const handleBackdropClick = () => {
-    if (isMobile && isSidebarOpen) setIsSidebarOpen(false);
-  };
   return (
     <div className={`worker-layout ${isMobile ? (isSidebarOpen ? 'mobile-sidebar-open' : '') : (isSidebarCollapsed ? 'sidebar-collapsed' : '')}`}>
       <WorkerSidebar 
@@ -38,9 +34,7 @@ const BaseWorker = () => {
         isMobile={isMobile}
       />
 
-      {isMobile && isSidebarOpen && (
-        <div className="sidebar-backdrop" onClick={handleBackdropClick} />
-      )}
+      
 
       <div className="worker-content">
         <WorkerNavbar toggleSidebar={toggleSidebar} />

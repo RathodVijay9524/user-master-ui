@@ -32,8 +32,31 @@ const UserSidebar = ({ isOpen, isCollapsed, toggleSidebar, isMobile }) => {
     toggleSidebar();
   };
 
+  const handleSidebarClick = (e) => {
+    // Prevent clicks inside the sidebar from bubbling to the backdrop
+    e.stopPropagation();
+  };
+
+  const handleBackdropClick = () => {
+    if (isMobile && isOpen) {
+      toggleSidebar();
+    }
+  };
+
   return (
-    <div className={`user-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobile && isOpen ? 'mobile-open' : ''}`}>
+    <>
+      {isMobile && isOpen && (
+        <div
+          className="sidebar-backdrop"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 998 }}
+          onClick={handleBackdropClick}
+        />
+      )}
+      <div
+        className={`user-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobile && isOpen ? 'mobile-open' : ''}`}
+        style={isMobile && isOpen ? { zIndex: 1001, position: 'fixed', top: 0, left: 0, height: '100vh' } : {}}
+        onClick={handleSidebarClick}
+      >
       <div className="sidebar-header">
         {!isCollapsed && <h3>User Panel</h3>}
         <button className="collapse-btn" onClick={handleToggleCollapse}>
@@ -69,7 +92,8 @@ const UserSidebar = ({ isOpen, isCollapsed, toggleSidebar, isMobile }) => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
