@@ -72,6 +72,7 @@ const Sidebar = ({ isOpen, isCollapsed, toggleSidebar, isMobile }) => {
               }
             : {}
         }
+        onClick={handleSidebarClick}
       >
         <div className="sidebar-header">
           {!isCollapsed && <h3>Admin Panel</h3>}

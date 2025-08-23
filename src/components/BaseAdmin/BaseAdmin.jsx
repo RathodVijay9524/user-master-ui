@@ -27,13 +27,6 @@ const BaseAdmin = () => {
     }
   };
 
-  // Close sidebar when clicking outside on mobile
-  const handleBackdropClick = (e) => {
-    if (isMobile && isSidebarOpen) {
-      setIsSidebarOpen(false);
-    }
-  };
-
   return (
     <div className={`admin-layout ${isMobile ? (isSidebarOpen ? 'mobile-sidebar-open' : '') : (isSidebarCollapsed ? 'sidebar-collapsed' : '')}`}>
       {/* Sidebar */}
@@ -43,11 +36,6 @@ const BaseAdmin = () => {
         toggleSidebar={toggleSidebar}
         isMobile={isMobile}
       />
-      
-      {/* Backdrop for mobile */}
-      {isMobile && isSidebarOpen && (
-        <div className="sidebar-backdrop" onClick={handleBackdropClick} />
-      )}
       
       <div className="admin-content">
         {/* Top Navigation */}
