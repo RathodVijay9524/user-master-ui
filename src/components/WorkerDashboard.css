@@ -76,3 +76,33 @@
   margin-bottom: 10px;
   color: #ff9800;
 }
+
+/* Edge-to-edge and responsive tweaks */
+@media (max-width: 992px) {
+  .worker-dashboard {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr; /* single column on phones */
+    gap: 15px;
+  }
+  .stat-card {
+    padding: 16px;
+  }
+  .quick-actions {
+    grid-template-columns: 1fr; /* single column actions */
+    gap: 12px;
+  }
+  .action-card {
+    padding: 16px;
+  }
+}

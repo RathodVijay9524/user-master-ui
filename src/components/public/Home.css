@@ -23,13 +23,13 @@
 }
 
 .hero h1 {
-  font-size: 3rem;
+  font-size: clamp(1.75rem, 6vw, 3rem);
   margin-bottom: 1rem;
   font-weight: 700;
 }
 
 .hero p {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
   margin-bottom: 2rem;
   opacity: 0.9;
 }
@@ -253,5 +253,33 @@
     padding: 0.75rem 1rem;
     width: 90%;
     bottom: 1.5rem;
+  }
+}
+
+/* Ultra-small phones: make CTA stack within flow and remove overlap risks */
+@media (max-width: 480px) {
+  .hero {
+    padding: 4rem 1rem 2.25rem; /* reduce bottom padding when CTA becomes static */
+  }
+  .cta-buttons {
+    position: static;
+    transform: none;
+    width: 100%;
+    margin: 1rem auto 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0;
+    animation: none;
+    opacity: 1;
+  }
+  .cta-buttons .btn {
+    width: 100%; /* full-width tappable buttons */
+  }
+  .services {
+    padding: 2.25rem 1rem; /* tighter horizontal padding */
+  }
+  .service-card {
+    padding: 1rem; /* reduce internal padding for small screens */
   }
 }

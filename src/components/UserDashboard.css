@@ -219,7 +219,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .user-dashboard {
-    padding: 15px;
+    padding: 15px 0; /* remove side gutters on small screens */
   }
   
   .dashboard-header {
@@ -258,6 +258,15 @@
   .quick-actions {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+}
+/* Edge-to-edge layout for tablets/phones */
+@media (max-width: 992px) {
+  .user-dashboard {
+    max-width: 100%;
+    margin: 0; /* remove centering */
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
