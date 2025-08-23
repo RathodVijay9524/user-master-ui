@@ -69,6 +69,18 @@
   .worker-sidebar.collapsed {
     transform: translateX(-100%);
   }
+  
+  /* Make content edge-to-edge on mobile */
+  .main-content {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+    margin: 0;
+  }
 }
 
 /* Backdrop for mobile sidebar */

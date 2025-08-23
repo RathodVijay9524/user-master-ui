@@ -78,6 +78,18 @@
   .sidebar.collapsed {
     transform: translateX(-100%);
   }
+  
+  /* Make content edge-to-edge on mobile */
+  .main-content {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+    margin: 0;
+  }
 }
 
 /* Backdrop for mobile sidebar */
@@ -106,7 +118,8 @@
   margin: 0 auto;
 }
 
-/* Card styling for content sections */n.card {
+/* Card styling for content sections */
+.card {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);

@@ -159,8 +159,8 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-0 md:px-6 py-6">
+      <div className="w-full md:max-w-7xl md:mx-auto">
         {/* Header */}
         <div className="mb-8">
           <p className="text-gray-600">Manage users, roles, and permissions</p>
@@ -206,7 +206,7 @@ const UserManagement = () => {
           <div className="border-b border-gray-200">
             {/* Horizontal scroll on mobile, no wrap, better touch targets */}
             <nav
-              className="flex flex-nowrap gap-4 px-4 sm:px-6 overflow-x-auto scrollbar-thin scrollbar-none"
+              className="flex flex-nowrap gap-4 px-0 sm:px-6 overflow-x-auto scrollbar-thin scrollbar-none"
               role="tablist"
               aria-label="User tabs"
             >
