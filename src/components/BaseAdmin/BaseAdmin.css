@@ -81,14 +81,16 @@
   
   /* Make content edge-to-edge on mobile */
   .main-content {
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0 !important; /* remove all inner gutters */
   }
-  .container-fluid {
-    padding-left: 0;
-    padding-right: 0;
-    max-width: 100%;
-    margin: 0;
+  /* Stronger override to beat Bootstrap defaults */
+  .admin-content .container-fluid,
+  .main-content .container-fluid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 }
 
