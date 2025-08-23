@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaEnvelope, FaArrowLeft } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import axiosInstance from '../../../redux/axiosInstance';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -18,8 +18,8 @@ const ForgotPassword = () => {
 
     try {
       setIsLoading(true);
-      await axios.get(`http://localhost:9091/api/v1/home/send-email-reset`, {
-        params: { email }
+      await axiosInstance.get(`/v1/home/send-email-reset`, {
+        params: { email },
       });
       toast.success('Reset email sent. Check your inbox!');
       setEmailSent(true);
@@ -33,8 +33,8 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
-        <Link 
-          to="/login" 
+        <Link
+          to="/login"
           className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
         >
           <FaArrowLeft className="mr-2" /> Back to Login
@@ -46,7 +46,7 @@ const ForgotPassword = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-800">Forgot Password?</h2>
           <p className="text-gray-600 mt-2">
-            {emailSent 
+            {emailSent
               ? "We've sent instructions to your email"
               : "Enter your email to reset your password"}
           </p>
@@ -74,9 +74,8 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center ${
-                isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               {isLoading ? (
                 <>
