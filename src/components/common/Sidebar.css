@@ -7,7 +7,7 @@
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 1000;
+  z-index: 1001; /* Increased z-index to be above backdrop */
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
@@ -69,6 +69,8 @@
   transition: all 0.2s ease;
   margin: 5px 10px;
   border-radius: 6px;
+  position: relative; /* Ensure proper stacking */
+  z-index: 1; /* Ensure links are clickable */
 }
 
 .sidebar-item:hover {
@@ -136,7 +138,7 @@
   margin-top: 2px;
 }
 
-/* Add backdrop for mobile sidebar */
+/* Backdrop for mobile sidebar */
 .sidebar-backdrop {
   position: fixed;
   top: 0;
@@ -144,14 +146,14 @@
   width: 100vw;
   height: 100vh;
   background: rgba(0,0,0,0.3);
-  z-index: 998;
+  z-index: 1000; /* Lower z-index than sidebar */
 }
 
 /* Responsive styles */
 @media (max-width: 992px) {
   .sidebar {
     transform: translateX(-100%);
-    z-index: 999;
+    z-index: 1001; /* Higher than backdrop */
     position: fixed;
     height: 100vh;
     top: 0;
@@ -160,11 +162,6 @@
   
   .sidebar.mobile-open {
     transform: translateX(0);
-    z-index: 999;
-    position: fixed;
-    height: 100vh;
-    top: 0;
-    left: 0;
   }
   
   .sidebar.collapsed {

@@ -29,12 +29,7 @@ const Sidebar = ({ isOpen, isCollapsed, toggleSidebar, isMobile }) => {
     toggleSidebar();
   };
 
-  // Handle click on sidebar to prevent event bubbling (for mobile overlays)
-  const handleSidebarClick = (e) => {
-    e.stopPropagation();
-  };
-
-  // Optionally, handle backdrop click to close sidebar on mobile
+  // Handle backdrop click to close sidebar on mobile
   const handleBackdropClick = () => {
     if (isMobile && isOpen) {
       toggleSidebar();
@@ -47,22 +42,11 @@ const Sidebar = ({ isOpen, isCollapsed, toggleSidebar, isMobile }) => {
       {isMobile && isOpen && (
         <div
           className="sidebar-backdrop"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(0,0,0,0.3)',
-            zIndex: 998
-          }}
           onClick={handleBackdropClick}
         />
       )}
       <div
         className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobile && isOpen ? 'mobile-open' : ''}`}
-        style={isMobile && isOpen ? { zIndex: 999, position: 'fixed', height: '100vh' } : {}}
-        onClick={handleSidebarClick}
       >
         <div className="sidebar-header">
           {!isCollapsed && <h3>Admin Panel</h3>}
