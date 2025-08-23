@@ -57,7 +57,7 @@ const ResetPassword = () => {
 
     try {
       setIsLoading(true);
-      await axiosInstancepost(`/v1/home/reset-password`, {
+      await axiosInstance.post(`/v1/home/reset-password`, {
         uid,
         token,
         newPassword,
