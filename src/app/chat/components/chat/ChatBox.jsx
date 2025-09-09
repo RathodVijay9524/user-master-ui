@@ -54,6 +54,8 @@ export default function ChatBoxMcp() {
 
   const [input, setInput] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [showConsole, setShowConsole] = useState(false);
+  const [consoleLogs, setConsoleLogs] = useState([]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -64,6 +66,40 @@ export default function ChatBoxMcp() {
   const [progress, setProgress] = useState({});
 
   const { messages, isLoading: loading, error } = useSelector((state) => state.chat);
+
+  // Mobile console capture
+  const addConsoleLog = (message, type = 'log') => {
+    const timestamp = new Date().toLocaleTimeString();
+    setConsoleLogs(prev => [...prev.slice(-49), { message, type, timestamp }]);
+  };
+
+  // Override console methods for mobile debugging
+  useEffect(() => {
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    console.log = (...args) => {
+      originalLog(...args);
+      addConsoleLog(args.join(' '), 'log');
+    };
+
+    console.error = (...args) => {
+      originalError(...args);
+      addConsoleLog(args.join(' '), 'error');
+    };
+
+    console.warn = (...args) => {
+      originalWarn(...args);
+      addConsoleLog(args.join(' '), 'warn');
+    };
+
+    return () => {
+      console.log = originalLog;
+      console.error = originalError;
+      console.warn = originalWarn;
+    };
+  }, []);
   const { provider, model, apiKey, baseUrl, temperature, maxTokens } = useSelector((state) => {
     const selectedProvider = state.settings.selectedProvider;
     const providerSettings = state.settings.providers[selectedProvider] || {};
@@ -350,6 +386,13 @@ export default function ChatBoxMcp() {
           </div>
           
           <div className="flex items-center space-x-1 md:space-x-3 flex-shrink-0">
+            {/* Mobile Console Button */}
+            <button
+              onClick={() => setShowConsole(!showConsole)}
+              className="px-2 py-1 text-xs bg-blue-700 text-white rounded hover:bg-blue-600"
+            >
+              📱 Console
+            </button>
             <button
               onClick={() => {
                 const next = theme === "dark" ? "green" : theme === "green" ? "light" : "dark";
@@ -398,6 +441,30 @@ export default function ChatBoxMcp() {
             </button>
           </div>
         </header>
+
+        {/* Mobile Console Panel */}
+        {showConsole && (
+          <div className="bg-black text-green-400 p-4 max-h-64 overflow-y-auto text-xs font-mono border-b">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-bold">📱 Mobile Console</h3>
+              <button
+                onClick={() => setConsoleLogs([])}
+                className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+              >
+                Clear
+              </button>
+            </div>
+            {consoleLogs.length === 0 ? (
+              <div className="text-gray-500">No logs yet. Try sending a message...</div>
+            ) : (
+              consoleLogs.map((log, index) => (
+                <div key={index} className={`mb-1 ${log.type === 'error' ? 'text-red-400' : log.type === 'warn' ? 'text-yellow-400' : 'text-green-400'}`}>
+                  <span className="text-gray-500">[{log.timestamp}]</span> {log.message}
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-6" style={{ background: colors.main }}>
