@@ -13,6 +13,10 @@ const themes = {
     input: "#1e293b",
     text: "#e5e7eb",
     border: "#1f2937",
+    userBubble: "#1e40af",
+    userText: "#e0e7ff",
+    aiBubble: "#334155",
+    aiText: "#f1f5f9",
   },
   green: {
     sidebar: "#000000",
@@ -21,6 +25,10 @@ const themes = {
     input: "#1e3d32",
     text: "#ffffff",
     border: "#1f2937",
+    userBubble: "#166534",
+    userText: "#dcfce7",
+    aiBubble: "#2d4a3e",
+    aiText: "#f0fdf4",
   },
   light: {
     sidebar: "#f8f9fa",
@@ -29,6 +37,10 @@ const themes = {
     input: "#f9fafb",
     text: "#212529",
     border: "#e5e7eb",
+    userBubble: "#dbeafe",
+    userText: "#1e40af",
+    aiBubble: "#e2e8f0",
+    aiText: "#1e293b",
   },
 };
 
@@ -84,6 +96,14 @@ export default function ChatBoxMcp() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Auto-resize textarea when input changes
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 128) + 'px';
+    }
+  }, [input]);
 
   useEffect(() => {
     let interval;
@@ -156,6 +176,11 @@ export default function ChatBoxMcp() {
     }));
     
     setInput("");
+    
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
   };
 
   const handleSendVoice = () => {
@@ -232,7 +257,12 @@ export default function ChatBoxMcp() {
               dispatch(clear());
               setMobileSidebarOpen(false);
             }}
-            className="bg-green-500 text-black py-2 px-3 rounded-lg mb-4 hover:bg-green-600 flex items-center justify-center text-sm"
+            className="py-2 px-3 rounded-lg mb-4 flex items-center justify-center text-sm hover:opacity-80 transition-all duration-200 shadow-md hover:shadow-lg"
+            style={{
+              backgroundColor: colors.userBubble,
+              color: colors.userText,
+              boxShadow: `0 2px 6px ${colors.userBubble}20`,
+            }}
           >
             + New Chat
           </button>
@@ -301,11 +331,11 @@ export default function ChatBoxMcp() {
             
             <div className="relative flex-shrink-0">
               <img
-                src="https://i.pravatar.cc/40?img=5"
+                src="/ai1.png"
                 alt="AI"
-                className="w-6 h-6 md:w-8 md:h-8 rounded-full border border-gray-500"
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-500"
               />
-              <span className="absolute bottom-0 right-0 w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-black"></span>
+              <span className="absolute bottom-0 right-0 w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full border-2 border-black"></span>
             </div>
             <h1 className="text-sm md:text-lg font-bold truncate">Chat Interface</h1>
           </div>
@@ -391,25 +421,30 @@ export default function ChatBoxMcp() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex items-start space-x-3 ${
-                  msg.role === "user" ? "justify-end space-x-reverse" : "justify-start"
+                className={`flex items-start ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
                 }`}
+                style={{
+                  gap: "12px"
+                }}
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                  <img
-                    src={msg.role === "user" ? "https://i.pravatar.cc/40?img=3" : "https://i.pravatar.cc/40?img=5"}
-                    alt={msg.role}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                </div>
-                <div className="flex flex-col max-w-xl">
-                  <span className="text-xs opacity-60 mb-1">{msg.role === "user" ? "You" : "AI Assistant"}</span>
+                {msg.role === "user" ? (
+                  <>
+                    <div className="flex flex-col max-w-xl">
+                      <span className="text-xs opacity-60 mb-1">You</span>
                   <div
-                    className={`px-4 py-2 rounded-2xl shadow-md ${
-                      msg.role === "user"
-                        ? "bg-green-500 text-black rounded-br-sm"
-                        : "bg-[#1e3d32] text-gray-200 rounded-bl-sm"
+                    className={`px-4 py-2 rounded-2xl ${
+                      msg.role === "user" 
+                        ? "rounded-br-sm shadow-lg" 
+                        : "rounded-bl-sm shadow-md"
                     }`}
+                    style={{
+                      backgroundColor: msg.role === "user" ? colors.userBubble : colors.aiBubble,
+                      color: msg.role === "user" ? colors.userText : colors.aiText,
+                      boxShadow: msg.role === "user" 
+                        ? `0 2px 8px ${colors.userBubble}15` 
+                        : `0 2px 8px rgba(0, 0, 0, 0.1)`,
+                    }}
                   >
                     {typeof msg.text === "object" && msg.text.type === "voice" ? (
                       <div className="flex items-center space-x-3 w-64 relative">
@@ -460,25 +495,135 @@ export default function ChatBoxMcp() {
                       <div className="break-words">{msg.text}</div>
                     )}
                   </div>
-                </div>
+                    </div>
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden flex-shrink-0">
+                      <img
+                        src="https://i.pravatar.cc/40?img=3"
+                        alt="user"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden flex-shrink-0">
+                      <img
+                        src="/ai1.png"
+                        alt="AI Assistant"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    </div>
+                    <div className="flex flex-col max-w-xl">
+                      <span className="text-xs opacity-60 mb-1">AI Assistant</span>
+                      <div
+                        className={`px-4 py-2 rounded-2xl ${
+                          msg.role === "user" 
+                            ? "rounded-br-sm shadow-lg" 
+                            : "rounded-bl-sm shadow-md"
+                        }`}
+                        style={{
+                          backgroundColor: msg.role === "user" ? colors.userBubble : colors.aiBubble,
+                          color: msg.role === "user" ? colors.userText : colors.aiText,
+                          boxShadow: msg.role === "user" 
+                            ? `0 2px 8px ${colors.userBubble}15` 
+                            : `0 2px 8px rgba(0, 0, 0, 0.1)`,
+                        }}
+                      >
+                        {typeof msg.text === "object" && msg.text.type === "voice" ? (
+                          <div className="flex items-center space-x-3 w-64 relative">
+                            <button
+                              onClick={() => {
+                                if (playingId === idx) {
+                                  setPlayingId(null);
+                                } else {
+                                  setPlayingId(idx);
+                                  const audio = new Audio(msg.text.url);
+                                  audio.play();
+                                  audio.ontimeupdate = () =>
+                                    setProgress((p) => ({
+                                      ...p,
+                                      [idx]: (audio.currentTime / audio.duration) * 100,
+                                    }));
+                                  audio.onended = () => {
+                                    setPlayingId(null);
+                                    setProgress((p) => ({ ...p, [idx]: 0 }));
+                                  };
+                                }
+                              }}
+                              className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30"
+                            >
+                              {playingId === idx ? "⏸" : "▶️"}
+                            </button>
+                            <div className="relative flex space-x-0.5 flex-1 items-end h-6">
+                              {WAVEFORM_BARS.map((h, i) => (
+                                <div
+                                  key={i}
+                                  className={`w-1 rounded-sm ${
+                                    playingId === idx ? "bg-green-400 animate-wave" : "bg-gray-500"
+                                  }`}
+                                  style={{
+                                    height: `${h}%`,
+                                    animationDelay: `${i * 0.1}s`,
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs opacity-70 flex-shrink-0">
+                              {String(Math.floor(msg.text.duration / 60)).padStart(2, "0")}:
+                              {String(msg.text.duration % 60).padStart(2, "0")}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="break-words">{msg.text}</div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
             {loading && (
               <div className="flex items-start space-x-3 justify-start animate-fade-in">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                  <img src="https://i.pravatar.cc/40?img=5" alt="AI Assistant" className="w-full h-full object-cover rounded-full" />
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden flex-shrink-0">
+                  <img src="/ai1.png" alt="AI Assistant" className="w-full h-full object-cover rounded-full" />
                 </div>
                 <div className="flex flex-col max-w-xl">
                   <span className="text-xs opacity-60 mb-1">AI Assistant is typing...</span>
-                  <div className="px-4 py-2 rounded-xl bg-[#1e3d32] border border-gray-700 flex space-x-2">
-                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full"></span>
-                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full delay-200"></span>
-                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full delay-400"></span>
+                  <div 
+                    className="px-4 py-2 rounded-xl border flex space-x-2"
+                    style={{
+                      backgroundColor: colors.aiBubble,
+                      borderColor: colors.border,
+                    }}
+                  >
+                    <span 
+                      className="dot-animation w-2 h-2 rounded-full"
+                      style={{ backgroundColor: colors.text }}
+                    ></span>
+                    <span 
+                      className="dot-animation w-2 h-2 rounded-full delay-200"
+                      style={{ backgroundColor: colors.text }}
+                    ></span>
+                    <span 
+                      className="dot-animation w-2 h-2 rounded-full delay-400"
+                      style={{ backgroundColor: colors.text }}
+                    ></span>
                   </div>
                 </div>
               </div>
             )}
-            {error && <div className="text-sm text-red-500">⚠ {String(error)}</div>}
+            {error && (
+              <div 
+                className="text-sm px-3 py-2 rounded-lg border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20"
+                style={{
+                  color: '#dc2626',
+                  backgroundColor: theme === 'light' ? '#fef2f2' : theme === 'dark' ? '#1f2937' : '#0f2a20',
+                  borderLeftColor: '#dc2626'
+                }}
+              >
+                ⚠ {String(error)}
+              </div>
+            )}
             <div ref={chatEndRef} />
           </div>
         </div>
@@ -512,14 +657,24 @@ export default function ChatBoxMcp() {
             )}
             <div className="flex items-end space-x-2 md:space-x-3">
               <div
-                className="flex items-end border rounded-2xl md:rounded-full px-3 md:px-4 py-2 flex-1 min-w-0"
+                className="flex items-end border rounded-2xl md:rounded-full px-3 md:px-4 py-2 flex-1 min-w-0 overflow-hidden"
                 style={{ background: colors.input, borderColor: colors.border }}
               >
-                <span className="text-gray-400 mr-2 flex-shrink-0 mb-1">🔍</span>
+                <span 
+                  className="mr-2 flex-shrink-0 mb-1"
+                  style={{ color: colors.text, opacity: 0.6 }}
+                >
+                  🔍
+                </span>
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    // Auto-resize textarea
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -528,28 +683,43 @@ export default function ChatBoxMcp() {
                   }}
                   placeholder="Type your message..."
                   rows={1}
-                  className="flex-1 resize-none bg-transparent outline-none px-1 md:px-2 py-1 text-sm md:text-base max-h-32 min-w-0"
-                  style={{ color: colors.text }}
+                  className="flex-1 resize-none bg-transparent outline-none px-1 md:px-2 py-1 text-sm md:text-base min-w-0 placeholder-opacity-60 overflow-y-auto"
+                  style={{ 
+                    color: colors.text,
+                    minHeight: '20px',
+                    maxHeight: '128px',
+                    '::placeholder': { color: colors.text, opacity: 0.6 }
+                  }}
                 />
-              </div>
-              <div className="flex space-x-1 md:space-x-2 flex-shrink-0">
+                   <div className="flex space-x-1 md:space-x-2 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsRecording((p) => !p)}
                   className={`w-10 h-10 md:w-10 md:h-10 flex items-center justify-center rounded-full text-sm ${
-                    isRecording ? "bg-red-600 text-white mic-pulse" : "bg-gray-700 text-white"
+                    isRecording ? "mic-pulse" : ""
                   }`}
+                  style={{
+                    backgroundColor: isRecording ? "#dc2626" : colors.border,
+                    color: "#ffffff"
+                  }}
                 >
                   🎤
                 </button>
                 <button
                   onClick={handleSend}
                   disabled={loading || !input.trim()}
-                  className="w-10 h-10 md:w-10 md:h-10 flex items-center justify-center bg-green-500 text-black rounded-full disabled:opacity-50 text-sm"
+                  className="w-10 h-10 md:w-10 md:h-10 flex items-center justify-center rounded-full disabled:opacity-50 text-sm shadow-md hover:shadow-lg transition-all duration-200"
+                  style={{
+                    backgroundColor: colors.userBubble,
+                    color: colors.userText,
+                    boxShadow: `0 2px 6px ${colors.userBubble}20`,
+                  }}
                 >
                   ➤
                 </button>
               </div>
+              </div>
+           
             </div>
           </div>
         </div>
