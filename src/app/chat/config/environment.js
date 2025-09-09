@@ -18,14 +18,12 @@ export const getApiBaseUrl = () => {
     fullUrl: window.location.href
   });
   
-  // For local development (localhost:5173)
+  // For local development (localhost:5173) - use production API
   if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-    // Try different local backend ports
-    const localBackendPorts = ['9091', '8080', '3001', '5000', '8000'];
-    const backendPort = localBackendPorts[0]; // Default to 9091
-    const localUrl = `http://localhost:${backendPort}`;
-    console.log('Local development detected, using:', localUrl);
-    return localUrl;
+    // Use production API even for local development since backend is not running locally
+    const productionUrl = 'https://codewithvijay.online:9091';
+    console.log('Local development detected, using production API:', productionUrl);
+    return productionUrl;
   }
   
   // For production (codewithvijay.online)
@@ -39,7 +37,7 @@ export const getApiBaseUrl = () => {
   // Default fallback based on current protocol
   const fallbackUrl = currentProtocol === 'https:' 
     ? 'https://codewithvijay.online:9091' 
-    : 'http://localhost:9091';
+    : 'https://codewithvijay.online:9091';
   console.log('Using fallback URL:', fallbackUrl);
   return fallbackUrl;
 };
@@ -64,20 +62,15 @@ export const getPossibleUrls = () => {
   
   if (env.isLocal) {
     return [
-      'http://localhost:9091',
-      'http://localhost:8080',
-      'http://localhost:3001',
-      'http://localhost:5000',
-      'http://localhost:8000'
+      'https://codewithvijay.online:9091',
+      'https://codewithvijay.online',
+      'https://api.codewithvijay.online'
     ];
   }
   
   return [
-    'https://codewithvijay.online',
-    'https://api.codewithvijay.online',
     'https://codewithvijay.online:9091',
-    'https://codewithvijay.online:8080',
-    'https://codewithvijay.online:3000',
-    'https://codewithvijay.online:5000'
+    'https://codewithvijay.online',
+    'https://api.codewithvijay.online'
   ];
 };
