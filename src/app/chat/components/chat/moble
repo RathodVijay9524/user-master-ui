@@ -260,10 +260,8 @@ export default function ChatBoxMcp() {
               setShowSettings(true);
               setMobileSidebarOpen(false);
             }}
-            title={sidebarCollapsed && !mobileSidebarOpen ? "Settings" : "Settings"}
-            className={`px-3 py-2 text-sm rounded theme-hover w-full ${
-              sidebarCollapsed && !mobileSidebarOpen ? 'px-2' : ''
-            }`}
+            title="Settings"
+            className="px-3 py-2 text-sm rounded theme-hover w-full"
             style={{
               backgroundColor: colors.border,
               color: colors.text,
@@ -278,7 +276,7 @@ export default function ChatBoxMcp() {
               e.target.style.color = colors.text;
             }}
           >
-            {sidebarCollapsed && !mobileSidebarOpen ? '⚙️' : '⚙️ Settings'}
+            ⚙️ Settings
           </button>
         </div>
       </aside>
@@ -391,28 +389,28 @@ export default function ChatBoxMcp() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex items-start space-x-3 ${
-                  msg.role === "user" ? "justify-end space-x-reverse" : "justify-start"
+                className={`flex items-start space-x-2 md:space-x-3 ${
+                  msg.role === "user" ? "justify-end flex-row-reverse space-x-reverse" : "justify-start"
                 }`}
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden flex-shrink-0">
                   <img
                     src={msg.role === "user" ? "https://i.pravatar.cc/40?img=3" : "https://i.pravatar.cc/40?img=5"}
                     alt={msg.role}
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
-                <div className="flex flex-col max-w-xl">
-                  <span className="text-xs opacity-60 mb-1">{msg.role === "user" ? "You" : "AI Assistant"}</span>
+                <div className="flex flex-col max-w-[85%] md:max-w-xl">
+                  <span className="text-xs opacity-60 mb-1 px-1">{msg.role === "user" ? "You" : "AI Assistant"}</span>
                   <div
-                    className={`px-4 py-2 rounded-2xl shadow-md ${
+                    className={`px-3 md:px-4 py-2 rounded-2xl shadow-md text-sm md:text-base ${
                       msg.role === "user"
                         ? "bg-green-500 text-black rounded-br-sm"
                         : "bg-[#1e3d32] text-gray-200 rounded-bl-sm"
                     }`}
                   >
                     {typeof msg.text === "object" && msg.text.type === "voice" ? (
-                      <div className="flex items-center space-x-3 w-64 relative">
+                      <div className="flex items-center space-x-2 md:space-x-3 w-full max-w-[240px] md:w-64 relative">
                         <button
                           onClick={() => {
                             if (playingId === idx) {
@@ -432,12 +430,12 @@ export default function ChatBoxMcp() {
                               };
                             }
                           }}
-                          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30"
+                          className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 flex-shrink-0"
                         >
-                          {playingId === idx ? "⏸" : "▶️"}
+                          <span className="text-xs">{playingId === idx ? "⏸" : "▶️"}</span>
                         </button>
-                        <div className="relative flex space-x-0.5 flex-1 items-end h-6">
-                          {WAVEFORM_BARS.map((h, i) => (
+                        <div className="relative flex space-x-0.5 flex-1 items-end h-4 md:h-6 overflow-hidden">
+                          {WAVEFORM_BARS.slice(0, 8).map((h, i) => (
                             <div
                               key={i}
                               className={`w-1 rounded-sm ${
@@ -464,21 +462,21 @@ export default function ChatBoxMcp() {
               </div>
             ))}
             {loading && (
-              <div className="flex items-start space-x-3 justify-start animate-fade-in">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+              <div className="flex items-start space-x-2 md:space-x-3 justify-start animate-fade-in">
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden flex-shrink-0">
                   <img src="https://i.pravatar.cc/40?img=5" alt="AI Assistant" className="w-full h-full object-cover rounded-full" />
                 </div>
                 <div className="flex flex-col max-w-xl">
-                  <span className="text-xs opacity-60 mb-1">AI Assistant is typing...</span>
-                  <div className="px-4 py-2 rounded-xl bg-[#1e3d32] border border-gray-700 flex space-x-2">
-                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full"></span>
-                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full delay-200"></span>
-                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full delay-400"></span>
+                  <span className="text-xs opacity-60 mb-1 px-1">AI Assistant is typing...</span>
+                  <div className="px-3 md:px-4 py-2 rounded-xl bg-[#1e3d32] border border-gray-700 flex space-x-2">
+                    <span className="dot-animation w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full"></span>
+                    <span className="dot-animation w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full delay-200"></span>
+                    <span className="dot-animation w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full delay-400"></span>
                   </div>
                 </div>
               </div>
             )}
-            {error && <div className="text-sm text-red-500">⚠ {String(error)}</div>}
+            {error && <div className="text-xs md:text-sm text-red-500 px-2">⚠ {String(error)}</div>}
             <div ref={chatEndRef} />
           </div>
         </div>

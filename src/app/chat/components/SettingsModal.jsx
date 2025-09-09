@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setProvider, setModel, setApiKey, setBaseUrl, setTemperature, setMaxTokens, clearSettings, fetchProviders, fetchModelsForProvider } from "../../../redux/chat/settingsSlice";
@@ -240,31 +241,38 @@ export default function SettingsModal({ onClose, theme }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-      <div className={`${currentTheme.sidebar} border rounded-2xl backdrop-blur-md w-full max-w-lg mx-4 shadow-2xl overflow-hidden animate-scale-in`}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div 
+        className="w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:mx-4 border-0 sm:border sm:rounded-2xl backdrop-blur-md shadow-2xl overflow-hidden animate-slide-up sm:animate-scale-in"
+        style={{ backgroundColor: currentTheme.sidebar, borderColor: currentTheme.border }}
+      >
         {/* Header */}
-        <div className={`${currentTheme.bubble} border-b backdrop-blur-sm`}>
-          <div className="flex items-center justify-between p-6">
+        <div 
+          className="border-b backdrop-blur-sm sticky top-0 z-10"
+          style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
+        >
+          <div className="flex items-center justify-between p-4 sm:p-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <span className="text-xl">⚙️</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <span className="text-lg sm:text-xl">⚙️</span>
               </div>
               <div>
-                <h2 className={`text-xl font-bold ${currentTheme.text}`}>AI Settings</h2>
-                <p className={`text-sm ${currentTheme.text} opacity-60`}>Configure your AI experience</p>
+                <h2 className="text-lg sm:text-xl font-bold" style={{ color: currentTheme.text }}>AI Settings</h2>
+                <p className="text-xs sm:text-sm opacity-60" style={{ color: currentTheme.text }}>Configure your AI experience</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className={`p-2 rounded-xl ${currentTheme.bubble} border hover:scale-110 transition-all duration-200 backdrop-blur-sm`}
+              className="p-2 rounded-xl border hover:scale-110 transition-all duration-200 backdrop-blur-sm"
+              style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
               title="Close Settings"
             >
-              <span className={`${currentTheme.text} text-lg`}>✕</span>
+              <span className="text-lg" style={{ color: currentTheme.text }}>✕</span>
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex space-x-1 px-6 pb-4">
+          {/* Mobile-First Tabs */}
+          <div className="flex space-x-1 px-4 sm:px-6 pb-3 sm:pb-4 overflow-x-auto">
             {[
               { id: "provider", label: "Provider", icon: "🤖" },
               { id: "config", label: "Config", icon: "🔧" },
@@ -273,34 +281,45 @@ export default function SettingsModal({ onClose, theme }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-200 whitespace-nowrap border backdrop-blur-sm ${
                   activeTab === tab.id
-                    ? `${currentTheme.userBubble} text-white shadow-lg`
-                    : `${currentTheme.bubble} ${currentTheme.text} opacity-70 hover:opacity-100 hover:scale-105`
-                } border backdrop-blur-sm`}
+                    ? "bg-green-500 text-white shadow-lg"
+                    : "opacity-70 hover:opacity-100 hover:scale-105"
+                }`}
+                style={{
+                  backgroundColor: activeTab === tab.id ? "#10b981" : currentTheme.bubble,
+                  color: activeTab === tab.id ? "#ffffff" : currentTheme.text,
+                  borderColor: currentTheme.border
+                }}
               >
                 <span className="text-sm">{tab.icon}</span>
-                <span className="text-sm font-medium">{tab.label}</span>
+                <span className="text-xs sm:text-sm font-medium">{tab.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 max-h-96 overflow-y-auto">
+        {/* Content with mobile-optimized scrolling */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{ maxHeight: "calc(100vh - 200px)" }}>
           {activeTab === "provider" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                   Select AI Provider
                 </label>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {isLoading && availableProviders.length === 0 ? (
-                    <div className={`w-full p-4 rounded-xl border ${currentTheme.bubble} ${currentTheme.text} flex items-center justify-center`}>
+                    <div 
+                      className="w-full p-3 sm:p-4 rounded-xl border flex items-center justify-center"
+                      style={{ backgroundColor: currentTheme.bubble, color: currentTheme.text, borderColor: currentTheme.border }}
+                    >
                       <span className="text-sm opacity-70">⏳ Loading providers...</span>
                     </div>
                   ) : error ? (
-                    <div className={`w-full p-4 rounded-xl border ${currentTheme.bubble} ${currentTheme.text} flex items-center justify-center`}>
+                    <div 
+                      className="w-full p-3 sm:p-4 rounded-xl border flex items-center justify-center"
+                      style={{ backgroundColor: currentTheme.bubble, color: currentTheme.text, borderColor: currentTheme.border }}
+                    >
                       <div className="text-center">
                         <span className="text-sm text-red-400">❌ Error loading providers</span>
                         <p className="text-xs opacity-60 mt-1">{error}</p>
@@ -317,28 +336,36 @@ export default function SettingsModal({ onClose, theme }) {
                     <button
                       key={option.value}
                       onClick={() => dispatch(setProvider(option.value))}
-                      className={`w-full p-4 rounded-xl border transition-all duration-200 flex items-center space-x-4 hover:scale-[1.02] ${
+                      className={`w-full p-3 sm:p-4 rounded-xl border transition-all duration-200 flex items-center space-x-3 sm:space-x-4 hover:scale-[1.02] ${
                         selectedProvider === option.value
                           ? `bg-gradient-to-r ${option.color} text-white shadow-lg border-transparent`
-                          : `${currentTheme.bubble} ${currentTheme.text} hover:bg-white/5 backdrop-blur-sm`
+                          : "hover:bg-white/5 backdrop-blur-sm"
                       }`}
+                      style={{
+                        backgroundColor: selectedProvider === option.value ? undefined : currentTheme.bubble,
+                        color: selectedProvider === option.value ? "#ffffff" : currentTheme.text,
+                        borderColor: selectedProvider === option.value ? "transparent" : currentTheme.border
+                      }}
                     >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        selectedProvider === option.value ? "bg-white/20" : currentTheme.bubble
-                      }`}>
-                        <span className="text-2xl">{option.emoji}</span>
+                      <div 
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
+                        style={{
+                          backgroundColor: selectedProvider === option.value ? "rgba(255,255,255,0.2)" : currentTheme.bubble
+                        }}
+                      >
+                        <span className="text-lg sm:text-2xl">{option.emoji}</span>
                       </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-semibold text-base">{option.label}</div>
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="font-semibold text-sm sm:text-base truncate">{option.label}</div>
                         <div className={`text-xs ${
-                          selectedProvider === option.value ? "text-white/80" : `${currentTheme.text} opacity-60`
+                          selectedProvider === option.value ? "text-white/80" : `opacity-60`
                         }`}>
                           {selectedProvider === option.value ? "Currently active" : "Tap to select"}
                         </div>
                       </div>
                       {selectedProvider === option.value && (
-                        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm">✓</span>
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs sm:text-sm">✓</span>
                         </div>
                       )}
                     </button>
@@ -347,20 +374,23 @@ export default function SettingsModal({ onClose, theme }) {
                 </div>
               </div>
 
-              {/* Provider Status */}
-              <div className={`p-4 rounded-xl border ${currentTheme.bubble}`}>
+              {/* Provider Status - Mobile optimized */}
+              <div 
+                className="p-3 sm:p-4 rounded-xl border"
+                style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm font-medium ${currentTheme.text}`}>Provider Status</span>
-                  <div className={`flex items-center space-x-2`}>
+                  <span className="text-sm font-medium" style={{ color: currentTheme.text }}>Provider Status</span>
+                  <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <span className={`text-xs ${currentTheme.text} opacity-60`}>
+                    <span className="text-xs opacity-60" style={{ color: currentTheme.text }}>
                       {isAvailable ? 'Available' : 'Unavailable'}
                     </span>
                   </div>
                 </div>
-                <div className={`text-xs ${currentTheme.text} opacity-60`}>
+                <div className="text-xs opacity-60 space-y-1" style={{ color: currentTheme.text }}>
                   <div><strong>Provider:</strong> {displayName}</div>
-                  <div><strong>Description:</strong> {description}</div>
+                  <div className="break-words"><strong>Description:</strong> {description}</div>
                   <div><strong>Status:</strong> {status}</div>
                 </div>
               </div>
@@ -368,17 +398,21 @@ export default function SettingsModal({ onClose, theme }) {
           )}
 
           {activeTab === "config" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Model Selection */}
               <div>
-                <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                   Select Model
                 </label>
                 <select
                   value={model}
                   onChange={(e) => dispatch(setModel(e.target.value))}
-                  className={`w-full p-3 rounded-xl border ${currentTheme.bubble} ${currentTheme.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  style={{ background: currentTheme.input, color: currentTheme.text, borderColor: currentTheme.border }}
+                  className="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                  style={{ 
+                    background: currentTheme.input, 
+                    color: currentTheme.text, 
+                    borderColor: currentTheme.border 
+                  }}
                 >
                   {availableModels.length > 0 ? (
                     availableModels.map((modelOption) => (
@@ -390,14 +424,14 @@ export default function SettingsModal({ onClose, theme }) {
                     <option value="">No models available</option>
                   )}
                 </select>
-                <p className={`text-xs ${currentTheme.text} opacity-60 mt-1`}>
+                <p className="text-xs opacity-60 mt-1" style={{ color: currentTheme.text }}>
                   Select a model for your AI provider
                 </p>
               </div>
 
               {/* Temperature Setting */}
               <div>
-                <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                   Temperature: {temperature}
                 </label>
                 <input
@@ -412,14 +446,14 @@ export default function SettingsModal({ onClose, theme }) {
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>0 (Focused)</span>
-                  <span>1 (Balanced)</span>
+                  <span className="hidden sm:inline">1 (Balanced)</span>
                   <span>2 (Creative)</span>
                 </div>
               </div>
 
               {/* Max Tokens Setting */}
               <div>
-                <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                   Max Tokens: {maxTokens}
                 </label>
                 <input
@@ -434,7 +468,7 @@ export default function SettingsModal({ onClose, theme }) {
                 />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>100</span>
-                  <span>2000</span>
+                  <span className="hidden sm:inline">2000</span>
                   <span>4000</span>
                 </div>
               </div>
@@ -443,7 +477,7 @@ export default function SettingsModal({ onClose, theme }) {
                 <>
                   {/* API Key */}
                   <div>
-                    <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                    <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                       API Key
                     </label>
                     <div className="relative">
@@ -452,14 +486,20 @@ export default function SettingsModal({ onClose, theme }) {
                         value={apiKey || ""}
                         onChange={(e) => dispatch(setApiKey(e.target.value))}
                         placeholder="Enter your API key..."
-                        className={`w-full ${currentTheme.input} border rounded-xl px-4 py-3 pr-12 ${currentTheme.text} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200`}
+                        className="w-full border rounded-xl px-4 py-3 pr-12 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200"
+                        style={{ 
+                          backgroundColor: currentTheme.input, 
+                          color: currentTheme.text,
+                          borderColor: currentTheme.border
+                        }}
                       />
                       <button
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg ${currentTheme.bubble} hover:scale-110 transition-all duration-200`}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:scale-110 transition-all duration-200"
+                        style={{ backgroundColor: currentTheme.bubble }}
                         title={showApiKey ? "Hide API Key" : "Show API Key"}
                       >
-                        <span className={`text-sm ${currentTheme.text} opacity-70`}>
+                        <span className="text-sm opacity-70" style={{ color: currentTheme.text }}>
                           {showApiKey ? "🙈" : "👁️"}
                         </span>
                       </button>
@@ -471,7 +511,7 @@ export default function SettingsModal({ onClose, theme }) {
               {/* Base URL for all providers except Ollama */}
               {selectedProvider !== "ollama" && (
                 <div>
-                  <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                  <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                     Base URL
                   </label>
                   <input
@@ -484,26 +524,34 @@ export default function SettingsModal({ onClose, theme }) {
                         ? "https://generativelanguage.googleapis.com/v1beta"
                         : "https://openrouter.ai/api/v1"
                     }
-                    className={`w-full ${currentTheme.input} border rounded-xl px-4 py-3 ${currentTheme.text} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200`}
+                    className="w-full border rounded-xl px-4 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200"
+                    style={{ 
+                      backgroundColor: currentTheme.input, 
+                      color: currentTheme.text,
+                      borderColor: currentTheme.border
+                    }}
                   />
                 </div>
               )}
 
               {selectedProvider === "ollama" && (
                 <>
-                  <div className={`p-4 rounded-xl ${currentTheme.bubble} border backdrop-blur-sm`}>
+                  <div 
+                    className="p-3 sm:p-4 rounded-xl border backdrop-blur-sm"
+                    style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
+                  >
                     <div className="flex items-center space-x-3 mb-2">
-                      <span className="text-2xl">🦙</span>
-                      <span className={`font-medium ${currentTheme.text}`}>Local Ollama Setup</span>
+                      <span className="text-xl sm:text-2xl">🦙</span>
+                      <span className="font-medium" style={{ color: currentTheme.text }}>Local Ollama Setup</span>
                     </div>
-                    <p className={`text-sm ${currentTheme.text} opacity-70`}>
+                    <p className="text-sm opacity-70" style={{ color: currentTheme.text }}>
                       Ollama runs locally on your machine. Make sure Ollama is installed and running on your system.
                     </p>
                   </div>
 
                   {/* Base URL for Ollama */}
                   <div>
-                    <label className={`block text-sm font-medium ${currentTheme.text} mb-3`}>
+                    <label className="block text-sm font-medium mb-3" style={{ color: currentTheme.text }}>
                       Ollama Base URL
                     </label>
                     <input
@@ -511,9 +559,14 @@ export default function SettingsModal({ onClose, theme }) {
                       value={baseUrl || "http://localhost:11434"}
                       onChange={(e) => dispatch(setBaseUrl(e.target.value))}
                       placeholder="http://localhost:11434"
-                      className={`w-full ${currentTheme.input} border rounded-xl px-4 py-3 ${currentTheme.text} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200`}
+                      className="w-full border rounded-xl px-4 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all duration-200"
+                      style={{ 
+                        backgroundColor: currentTheme.input, 
+                        color: currentTheme.text,
+                        borderColor: currentTheme.border
+                      }}
                     />
-                    <p className={`text-xs ${currentTheme.text} opacity-60 mt-1`}>
+                    <p className="text-xs opacity-60 mt-1" style={{ color: currentTheme.text }}>
                       Default: http://localhost:11434 (change if your Ollama runs on a different host/port)
                     </p>
                   </div>
@@ -523,24 +576,30 @@ export default function SettingsModal({ onClose, theme }) {
           )}
 
           {activeTab === "about" && (
-            <div className="space-y-6">
-              <div className={`text-center p-6 rounded-xl ${currentTheme.bubble} border backdrop-blur-sm`}>
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">🤖</span>
+            <div className="space-y-4 sm:space-y-6">
+              <div 
+                className="text-center p-4 sm:p-6 rounded-xl border backdrop-blur-sm"
+                style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
+              >
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <span className="text-2xl sm:text-3xl">🤖</span>
                 </div>
-                <h3 className={`text-lg font-bold ${currentTheme.text} mb-2`}>Neural Chat AI</h3>
-                <p className={`text-sm ${currentTheme.text} opacity-60 mb-4`}>
+                <h3 className="text-lg font-bold mb-2" style={{ color: currentTheme.text }}>Neural Chat AI</h3>
+                <p className="text-sm opacity-60 mb-3 sm:mb-4" style={{ color: currentTheme.text }}>
                   Advanced AI chat interface with multiple provider support
                 </p>
-                <div className={`text-xs ${currentTheme.text} opacity-50`}>
+                <div className="text-xs opacity-50" style={{ color: currentTheme.text }}>
                   Version 2.0.1
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className={`p-4 rounded-xl ${currentTheme.bubble} border backdrop-blur-sm`}>
-                  <h4 className={`font-medium ${currentTheme.text} mb-2`}>🔧 Features</h4>
-                  <ul className={`text-sm ${currentTheme.text} opacity-70 space-y-1`}>
+              <div className="space-y-3 sm:space-y-4">
+                <div 
+                  className="p-3 sm:p-4 rounded-xl border backdrop-blur-sm"
+                  style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
+                >
+                  <h4 className="font-medium mb-2" style={{ color: currentTheme.text }}>🔧 Features</h4>
+                  <ul className="text-sm opacity-70 space-y-1" style={{ color: currentTheme.text }}>
                     <li>• Multiple AI provider support</li>
                     <li>• Voice message recording</li>
                     <li>• Theme customization</li>
@@ -549,22 +608,25 @@ export default function SettingsModal({ onClose, theme }) {
                   </ul>
                 </div>
 
-                <div className={`p-4 rounded-xl ${currentTheme.bubble} border backdrop-blur-sm`}>
-                  <h4 className={`font-medium ${currentTheme.text} mb-2`}>📊 Usage Stats</h4>
+                <div 
+                  className="p-3 sm:p-4 rounded-xl border backdrop-blur-sm"
+                  style={{ backgroundColor: currentTheme.bubble, borderColor: currentTheme.border }}
+                >
+                  <h4 className="font-medium mb-2" style={{ color: currentTheme.text }}>📊 Usage Stats</h4>
                   <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className={`text-sm ${currentTheme.text} opacity-70`}>Current Provider:</span>
-                      <span className={`text-sm ${currentTheme.text} font-medium`}>
+                    <div className="flex justify-between text-sm">
+                      <span className="opacity-70" style={{ color: currentTheme.text }}>Current Provider:</span>
+                      <span className="font-medium truncate ml-2" style={{ color: currentTheme.text }}>
                         {providerOptions.find((p) => p.value === selectedProvider)?.label || selectedProvider}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className={`text-sm ${currentTheme.text} opacity-70`}>Model:</span>
-                      <span className={`text-sm ${currentTheme.text} font-medium`}>{model || "Not selected"}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="opacity-70" style={{ color: currentTheme.text }}>Model:</span>
+                      <span className="font-medium truncate ml-2" style={{ color: currentTheme.text }}>{model || "Not selected"}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className={`text-sm ${currentTheme.text} opacity-70`}>Settings Saved:</span>
-                      <span className={`text-sm ${currentTheme.text} font-medium`}>
+                    <div className="flex justify-between text-sm">
+                      <span className="opacity-70" style={{ color: currentTheme.text }}>Settings Saved:</span>
+                      <span className="font-medium" style={{ color: currentTheme.text }}>
                         {localStorage.getItem('neural-chat-settings') ? 'Yes' : 'No'}
                       </span>
                     </div>
@@ -576,27 +638,27 @@ export default function SettingsModal({ onClose, theme }) {
         </div>
 
         {/* Footer */}
-        <div className={`${currentTheme.bubble} border-t backdrop-blur-sm p-6`}>
-          <div className="flex justify-between items-center">
+        <div className={`${currentTheme.bubble} border-t backdrop-blur-sm p-4 sm:p-6`}>
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
             <button
               onClick={handleReset}
-              className={`px-4 py-2 rounded-xl border ${currentTheme.bubble} ${currentTheme.text} hover:scale-105 transition-all duration-200 backdrop-blur-sm flex items-center space-x-2`}
+              className={`w-full sm:w-auto px-4 py-2 rounded-xl border ${currentTheme.bubble} ${currentTheme.text} hover:scale-105 transition-all duration-200 backdrop-blur-sm flex items-center justify-center space-x-2`}
               title="Reset all settings"
             >
               <span className="text-sm">🔄</span>
               <span className="text-sm">Reset</span>
             </button>
 
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
               <button
                 onClick={onClose}
-                className={`px-6 py-2 rounded-xl ${currentTheme.bubble} border ${currentTheme.text} hover:scale-105 transition-all duration-200 backdrop-blur-sm`}
+                className={`w-full sm:w-auto px-4 sm:px-6 py-2 rounded-xl ${currentTheme.bubble} border ${currentTheme.text} hover:scale-105 transition-all duration-200 backdrop-blur-sm`}
               >
                 <span className="text-sm font-medium">Cancel</span>
               </button>
               <button
                 onClick={handleSave}
-                className={`px-6 py-2 rounded-xl ${currentTheme.userBubble} text-white hover:scale-105 transition-all duration-200 shadow-lg font-medium`}
+                className={`w-full sm:w-auto px-4 sm:px-6 py-2 rounded-xl ${currentTheme.userBubble} text-white hover:scale-105 transition-all duration-200 shadow-lg font-medium`}
               >
                 <span className="text-sm">Save Changes</span>
               </button>
