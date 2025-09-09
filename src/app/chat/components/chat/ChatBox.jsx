@@ -156,11 +156,10 @@ export default function ChatBoxMcp() {
   }, [isRecording]);
 
   const handleSend = () => {
-    console.log('🚀 handleSend called');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('🚀 handleSend called - Mobile:', isMobile);
     console.log('Input:', input);
-    console.log('Input trimmed:', input.trim());
     console.log('Loading state:', loading);
-    console.log('Button disabled:', loading || !input.trim());
     
     if (!input.trim()) {
       console.log('❌ Cannot send empty message');

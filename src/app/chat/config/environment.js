@@ -30,23 +30,15 @@ export const getApiBaseUrl = () => {
   
   // For production (codewithvijay.online)
   if (currentHost === 'codewithvijay.online') {
-    // Try different possible production backend URLs
-    const productionUrls = [
-      'https://codewithvijay.online',
-      'https://api.codewithvijay.online',
-      'https://codewithvijay.online:9091',
-      'https://codewithvijay.online:8080',
-      'https://codewithvijay.online:3000',
-      'https://codewithvijay.online:5000'
-    ];
-    const productionUrl = productionUrls[0]; // Default to main domain
+    // Use the main domain with port 9091 (which proxies to chat API on 8080)
+    const productionUrl = 'https://codewithvijay.online:9091';
     console.log('Production detected, using:', productionUrl);
     return productionUrl;
   }
   
   // Default fallback based on current protocol
   const fallbackUrl = currentProtocol === 'https:' 
-    ? 'https://codewithvijay.online' 
+    ? 'https://codewithvijay.online:9091' 
     : 'http://localhost:9091';
   console.log('Using fallback URL:', fallbackUrl);
   return fallbackUrl;
