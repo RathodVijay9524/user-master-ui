@@ -155,48 +155,34 @@ export default function ChatBoxMcp() {
     };
   }, [isRecording]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = () => {
+    console.log('🚀 handleSend called');
+    console.log('Input:', input);
+    console.log('Input trimmed:', input.trim());
+    console.log('Loading state:', loading);
+    console.log('Button disabled:', loading || !input.trim());
     
-    // Mobile debugging
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log('=== SENDING MESSAGE ===');
-    console.log('Is Mobile:', isMobile);
-    console.log('User Agent:', navigator.userAgent);
-    console.log('Current URL:', window.location.href);
-    console.log('API Base URL:', getApiBaseUrl());
+    if (!input.trim()) {
+      console.log('❌ Cannot send empty message');
+      return;
+    }
+    
+    // Debug logging
     console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
-    console.log('========================');
     
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
     
-    try {
-      // Send message to backend for AI response
-      const result = await dispatch(sendMessage({ 
-        message: input, 
-        provider: provider || 'openai',
-        model: model || 'gpt-4',
-        apiKey: apiKey || '',
-        baseUrl: baseUrl || '',
-        temperature: temperature || 0.7,
-        maxTokens: maxTokens || 1000
-      })).unwrap();
-      
-      console.log('✅ Message sent successfully:', result);
-    } catch (error) {
-      console.error('❌ Failed to send message:', error);
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        isMobile,
-        userAgent: navigator.userAgent
-      });
-      
-      // Show user-friendly error
-      setError(`Failed to send message: ${error.message}`);
-    }
+    // Send message to backend for AI response
+    dispatch(sendMessage({ 
+      message: input, 
+      provider: provider || 'openai',
+      model: model || 'gpt-4',
+      apiKey: apiKey || '',
+      baseUrl: baseUrl || '',
+      temperature: temperature || 0.7,
+      maxTokens: maxTokens || 1000
+    }));
     
     setInput("");
     
@@ -699,7 +685,9 @@ export default function ChatBoxMcp() {
                     e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
                   }}
                   onKeyDown={(e) => {
+                    console.log('🔑 Key pressed:', e.key);
                     if (e.key === "Enter" && !e.shiftKey) {
+                      console.log('🚀 Enter key pressed, calling handleSend');
                       e.preventDefault();
                       handleSend();
                     }
@@ -729,7 +717,11 @@ export default function ChatBoxMcp() {
                   🎤
                 </button>
                 <button
-                  onClick={handleSend}
+                  onClick={() => {
+                    console.log('🖱️ Send button clicked');
+                    console.log('Button disabled:', loading || !input.trim());
+                    handleSend();
+                  }}
                   disabled={loading || !input.trim()}
                   className="w-10 h-10 md:w-10 md:h-10 flex items-center justify-center rounded-full disabled:opacity-50 text-sm shadow-md hover:shadow-lg transition-all duration-200"
                   style={{
