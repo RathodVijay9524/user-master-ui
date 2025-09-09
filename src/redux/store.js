@@ -2,12 +2,18 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
 import userReducer from './userSlice';
 import workerReducer from './workerSlice';
+import chatReducer from './chat/chatSlice';
+import settingsReducer from './chat/settingsSlice';
+import themeReducer from './chat/themeSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     users: userReducer,
-    workers: workerReducer
+    workers: workerReducer,
+    chat: chatReducer,
+    settings: settingsReducer,
+    theme: themeReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -17,11 +23,14 @@ export const store = configureStore({
           'users/updateStatus/fulfilled',
           'workers/fetchWorkersWithFilter/fulfilled',
           'workers/updateWorkerStatus/fulfilled',
+          'chat/sendMessage/fulfilled',
+          'settings/fetchProviders/fulfilled',
+          'settings/fetchModelsForProvider/fulfilled',
         ],
         // Ignore these field paths in all actions
         ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
         // Ignore these paths in the state
-        ignoredPaths: ['users.users', 'workers.workers'],
+        ignoredPaths: ['users.users', 'workers.workers', 'chat.messages', 'settings.providers'],
       },
     }),
 });

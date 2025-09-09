@@ -31,7 +31,7 @@ const Contact = () => {
       subject: '',
       message: ''
     });
-    
+
     // Clear success message after 5 seconds
     setTimeout(() => setStatus(''), 5000);
   };
@@ -71,7 +71,7 @@ const Contact = () => {
           <div className="absolute top-16 left-16 w-40 h-40 bg-white bg-opacity-10 rounded-full blur-xl animate-pulse"></div>
           <div className="absolute bottom-24 right-20 w-56 h-56 bg-blue-400 bg-opacity-20 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }}></div>
         </div>
-        
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
             Contact Us
@@ -174,7 +174,7 @@ const Contact = () => {
               >
                 <FaPaperPlane className="mr-2" /> Send Message
               </button>
-              
+
               {/* Status Message */}
               {status && (
                 <div className="mt-4 p-3 bg-emerald-100 text-emerald-800 rounded-lg text-center">
@@ -187,11 +187,11 @@ const Contact = () => {
           {/* Contact Info */}
           <section className="space-y-8">
             <h2 className="text-3xl font-bold text-gray-800">Contact Information</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {contactInfo.map((item, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-200 border border-gray-100"
                 >
                   <div className="flex items-start space-x-4">
@@ -201,8 +201,8 @@ const Contact = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-1">{item.title}</h3>
                       {item.link ? (
-                        <a 
-                          href={item.link} 
+                        <a
+                          href={item.link}
                           className="text-gray-600 hover:text-emerald-600 transition-colors duration-200"
                         >
                           {item.description}

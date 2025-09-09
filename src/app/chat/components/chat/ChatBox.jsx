@@ -1,0 +1,598 @@
+import React, { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
+import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
+import { setProvider } from "../../../../redux/chat/settingsSlice";
+import SettingsModal from "../SettingsModal";
+
+const themes = {
+  dark: {
+    sidebar: "#0a0f1c",
+    main: "#0f172a",
+    bubble: "#1e293b",
+    input: "#1e293b",
+    text: "#e5e7eb",
+    border: "#1f2937",
+  },
+  green: {
+    sidebar: "#000000",
+    main: "#0f2a20",
+    bubble: "#1e3d32",
+    input: "#1e3d32",
+    text: "#ffffff",
+    border: "#1f2937",
+  },
+  light: {
+    sidebar: "#f8f9fa",
+    main: "#ffffff",
+    bubble: "#f1f3f5",
+    input: "#f9fafb",
+    text: "#212529",
+    border: "#e5e7eb",
+  },
+};
+
+const WAVEFORM_BARS = [30, 60, 45, 80, 55, 70, 40, 65, 50, 75, 35, 60];
+
+export default function ChatBoxMcp() {
+  const dispatch = useDispatch();
+  const [theme, setTheme] = useState("dark");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const [input, setInput] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordWave, setRecordWave] = useState([]);
+  const [audioStream, setAudioStream] = useState(null);
+
+  const [playingId, setPlayingId] = useState(null);
+  const [progress, setProgress] = useState({});
+
+  const { messages, isLoading: loading, error } = useSelector((state) => state.chat);
+  const { provider, model, apiKey, baseUrl, temperature, maxTokens } = useSelector((state) => {
+    const selectedProvider = state.settings.selectedProvider;
+    const providerSettings = state.settings.providers[selectedProvider] || {};
+    
+    // Debug logging
+    console.log('ChatBox - Selected Provider:', selectedProvider);
+    console.log('ChatBox - Provider Settings:', providerSettings);
+    
+    return { 
+      provider: selectedProvider,
+      model: providerSettings.model || 'gpt-4',
+      apiKey: providerSettings.apiKey || '',
+      baseUrl: providerSettings.baseUrl || '',
+      temperature: providerSettings.temperature || 0.7,
+      maxTokens: providerSettings.maxTokens || 1000
+    };
+  });
+
+  const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("chatTheme");
+    if (saved && saved in themes) setTheme(saved);
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("chatTheme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  useEffect(() => {
+    let interval;
+    if (isRecording) {
+      interval = setInterval(() => setRecordingTime((p) => p + 1), 1000);
+    } else {
+      setRecordingTime(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
+
+  useEffect(() => {
+    let audioCtx;
+    let analyser;
+    let source;
+    let dataArray;
+    let rafId;
+    if (isRecording) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        setAudioStream(stream);
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+        const tick = () => {
+          if (analyser && dataArray) {
+            analyser.getByteFrequencyData(dataArray);
+            const values = Array.from(dataArray).slice(0, 20).map((v) => (v / 255) * 100);
+            setRecordWave(values);
+            rafId = requestAnimationFrame(tick);
+          }
+        };
+        tick();
+      });
+    } else {
+      if (audioStream) {
+        audioStream.getTracks().forEach((t) => t.stop());
+        setAudioStream(null);
+      }
+      setRecordWave([]);
+    }
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (audioStream) audioStream.getTracks().forEach((t) => t.stop());
+    };
+  }, [isRecording]);
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    
+    // Debug logging
+    console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
+    
+    // Add user message to UI immediately
+    dispatch(sendChat({ message: input }));
+    
+    // Send message to backend for AI response
+    dispatch(sendMessage({ 
+      message: input, 
+      provider: provider || 'openai',
+      model: model || 'gpt-4',
+      apiKey: apiKey || '',
+      baseUrl: baseUrl || '',
+      temperature: temperature || 0.7,
+      maxTokens: maxTokens || 1000
+    }));
+    
+    setInput("");
+  };
+
+  const handleSendVoice = () => {
+    // Add voice message to UI immediately
+    dispatch(
+      sendChat({
+        message: {
+          type: "voice",
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+          duration: recordingTime,
+        },
+      })
+    );
+    
+    // Send voice message to backend for AI response
+    dispatch(sendMessage({ 
+      message: "Voice message", 
+      provider: provider || 'openai',
+      model: model || 'gpt-4',
+      apiKey: apiKey || '',
+      baseUrl: baseUrl || '',
+      temperature: temperature || 0.7,
+      maxTokens: maxTokens || 1000
+    }));
+    
+    setIsRecording(false);
+  };
+
+  const colors = themes[theme];
+
+  return (
+    <div className="flex h-screen" style={{ background: colors.main, color: colors.text }}>
+      {/* Sidebar */}
+      <aside
+        className={`${sidebarCollapsed ? "w-16" : "w-64"} flex flex-col p-4 transition-all duration-300`}
+        style={{ background: colors.sidebar, borderRight: `1px solid ${colors.border}` }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          {!sidebarCollapsed && (
+            <h1 className="text-green-500 font-bold text-lg flex items-center space-x-2">
+              <span>💡</span> <span>AI Assistant</span>
+            </h1>
+          )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-600"
+          >
+            {sidebarCollapsed ? "→" : "←"}
+          </button>
+        </div>
+
+        {!sidebarCollapsed && (
+          <button
+            onClick={() => {
+              resetConversationId();
+              dispatch(clear());
+            }}
+            className="bg-green-500 text-black py-2 rounded-lg mb-4 hover:bg-green-600 flex items-center justify-center"
+          >
+            + New Chat
+          </button>
+        )}
+
+        <div className="mt-auto flex items-center justify-between space-x-3">
+          {!sidebarCollapsed && (
+            <select
+              value={provider}
+              onChange={(e) => dispatch(setProvider(e.target.value))}
+              className="flex-1 border rounded px-2 py-1 text-sm"
+              style={{ background: colors.input, color: colors.text, borderColor: colors.border }}
+            >
+              <option value="claude">🤖 Claude</option>
+              <option value="gemini">💎 Gemini</option>
+              <option value="groq">⚡ Groq</option>
+              <option value="huggingface">🤗 Hugging Face</option>
+              <option value="ollama">🦙 Ollama</option>
+              <option value="openai">🔑 OpenAI</option>
+              <option value="openrouter">🌐 OpenRouter</option>
+            </select>
+          )}
+          <button 
+            onClick={() => setShowSettings(true)} 
+            title="Settings"
+            className="px-2 py-1 text-xs rounded theme-hover"
+            style={{
+              backgroundColor: colors.border,
+              color: colors.text,
+              border: `1px solid ${colors.border}`
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = colors.text;
+              e.target.style.color = colors.main;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = colors.border;
+              e.target.style.color = colors.text;
+            }}
+          >
+            ⚙️
+          </button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main className="flex-1 flex flex-col">
+        {/* Navbar */}
+        <header
+          className="flex justify-between items-center px-6 py-3"
+          style={{ background: colors.main, borderBottom: `1px solid ${colors.border}` }}
+        >
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <img
+                src="https://i.pravatar.cc/40?img=5"
+                alt="AI"
+                className="w-8 h-8 rounded-full border border-gray-500"
+              />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></span>
+            </div>
+            <h1 className="text-lg font-bold">Chat Interface</h1>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => {
+                const next = theme === "dark" ? "green" : theme === "green" ? "light" : "dark";
+                setTheme(next);
+              }}
+              className="px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-600"
+            >
+              {theme === "dark" ? "🌙" : theme === "green" ? "🌿" : "☀️"}
+            </button>
+            <Link 
+              to="/" 
+              title="Go to Home Page" 
+              className="text-lg mr-3 theme-hover p-2 rounded-lg"
+              style={{
+                color: colors.text,
+                backgroundColor: 'transparent',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = colors.border;
+                e.target.style.color = colors.text;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = colors.text;
+              }}
+            >
+              🏠
+            </Link>
+            <button 
+              onClick={() => setShowSettings(true)} 
+              className="text-lg p-2 rounded-lg theme-hover"
+              style={{
+                color: colors.text,
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = colors.border;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </div>
+        </header>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-6" style={{ background: colors.main }}>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full min-h-[500px]">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                    <span className="text-2xl">🤖</span>
+                  </div>
+                  <h2 className="text-xl font-bold mb-2" style={{ color: colors.text }}>Welcome to AI Chat</h2>
+                  <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm">
+                    Start a conversation with your AI assistant. Ask questions, get help, or just chat!
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs border border-blue-500/30">
+                      ✨ Real-time Chat
+                    </span>
+                    <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs border border-green-500/30">
+                      🎤 Voice Messages
+                    </span>
+                    <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs border border-purple-500/30">
+                      🤖 Multiple AI Providers
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex items-start space-x-3 ${
+                  msg.role === "user" ? "justify-end space-x-reverse" : "justify-start"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                  <img
+                    src={msg.role === "user" ? "https://i.pravatar.cc/40?img=3" : "https://i.pravatar.cc/40?img=5"}
+                    alt={msg.role}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+                <div className="flex flex-col max-w-xl">
+                  <span className="text-xs opacity-60 mb-1">{msg.role === "user" ? "You" : "AI Assistant"}</span>
+                  <div
+                    className={`px-4 py-2 rounded-2xl shadow-md ${
+                      msg.role === "user"
+                        ? "bg-green-500 text-black rounded-br-sm"
+                        : "bg-[#1e3d32] text-gray-200 rounded-bl-sm"
+                    }`}
+                  >
+                    {typeof msg.text === "object" && msg.text.type === "voice" ? (
+                      <div className="flex items-center space-x-3 w-64 relative">
+                        <button
+                          onClick={() => {
+                            if (playingId === idx) {
+                              setPlayingId(null);
+                            } else {
+                              setPlayingId(idx);
+                              const audio = new Audio(msg.text.url);
+                              audio.play();
+                              audio.ontimeupdate = () =>
+                                setProgress((p) => ({
+                                  ...p,
+                                  [idx]: (audio.currentTime / audio.duration) * 100,
+                                }));
+                              audio.onended = () => {
+                                setPlayingId(null);
+                                setProgress((p) => ({ ...p, [idx]: 0 }));
+                              };
+                            }
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30"
+                        >
+                          {playingId === idx ? "⏸" : "▶️"}
+                        </button>
+                        <div className="relative flex space-x-0.5 flex-1 items-end h-6">
+                          {WAVEFORM_BARS.map((h, i) => (
+                            <div
+                              key={i}
+                              className={`w-1 rounded-sm ${
+                                playingId === idx ? "bg-green-400 animate-wave" : "bg-gray-500"
+                              }`}
+                              style={{ height: `${h}%`, animationDelay: `${i * 0.1}s` }}
+                            />
+                          ))}
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow"
+                            style={{ left: `${(progress)[idx] || 0}%`, transform: "translate(-50%, -50%)" }}
+                          />
+                        </div>
+                        <span className="text-xs opacity-70">
+                          {String(Math.floor(msg.text.duration / 60)).padStart(2, "0")}:
+                          {String(msg.text.duration % 60).padStart(2, "0")}
+                        </span>
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex items-start space-x-3 justify-start animate-fade-in">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                  <img src="https://i.pravatar.cc/40?img=5" alt="AI Assistant" className="w-full h-full object-cover rounded-full" />
+                </div>
+                <div className="flex flex-col max-w-xl">
+                  <span className="text-xs opacity-60 mb-1">AI Assistant is typing...</span>
+                  <div className="px-4 py-2 rounded-xl bg-[#1e3d32] border border-gray-700 flex space-x-2">
+                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full"></span>
+                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full delay-200"></span>
+                    <span className="dot-animation w-2 h-2 bg-gray-400 rounded-full delay-400"></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            {error && <div className="text-sm text-red-500">⚠ {String(error)}</div>}
+            <div ref={chatEndRef} />
+          </div>
+        </div>
+
+        {/* Input stays same */}
+        <div className="p-4" style={{ background: colors.main, borderTop: `1px solid ${colors.border}` }}>
+          <div className="max-w-3xl mx-auto w-full">
+            {isRecording && (
+              <div className="flex items-center justify-between bg-red-600 text-white text-sm px-3 py-2 rounded-md mb-2">
+                <div className="flex items-center space-x-3">
+                  <span>🔴 Recording...</span>
+                  <span className="text-xs font-mono opacity-90">
+                    {String(Math.floor(recordingTime / 60)).padStart(2, "0")}:
+                    {String(recordingTime % 60).padStart(2, "0")}
+                  </span>
+                  <div className="flex space-x-0.5 h-6 items-end">
+                    {recordWave.map((h, i) => (
+                      <div key={i} className="w-1 bg-white rounded-sm" style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button onClick={() => setIsRecording(false)} className="px-2 py-0.5 bg-white/20 rounded">
+                    ❌ Cancel
+                  </button>
+                  <button onClick={handleSendVoice} className="px-2 py-0.5 bg-white/20 rounded hover:bg-green-500">
+                    ✅ Send
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center space-x-3">
+              <div
+                className="flex items-center border rounded-full px-4 py-2 flex-1"
+                style={{ background: colors.input, borderColor: colors.border }}
+              >
+                <span className="text-gray-400 mr-2">🔍</span>
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder="Type your message..."
+                  rows={1}
+                  className="flex-1 resize-none bg-transparent outline-none px-2 py-1"
+                  style={{ color: colors.text }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsRecording((p) => !p)}
+                  className={`ml-2 w-10 h-10 flex items-center justify-center rounded-full ${
+                    isRecording ? "bg-red-600 text-white mic-pulse" : "bg-gray-700 text-white"
+                  }`}
+                >
+                  🎤
+                </button>
+                <button
+                  onClick={handleSend}
+                  disabled={loading || !input.trim()}
+                  className="ml-2 w-10 h-10 flex items-center justify-center bg-green-500 text-black rounded-full"
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} theme={colors} />}
+
+      <style>{`
+        @keyframes wave {
+          0% {
+            transform: scaleY(0.3);
+          }
+          50% {
+            transform: scaleY(1);
+          }
+          100% {
+            transform: scaleY(0.3);
+          }
+        }
+        .animate-wave {
+          animation: wave 1s infinite ease-in-out;
+        }
+        @keyframes micPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+          }
+        }
+        .mic-pulse {
+          animation: micPulse 1.5s infinite;
+        }
+        @keyframes dotPulse {
+          0%, 80%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+          }
+          40% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .dot-animation {
+          animation: dotPulse 1.4s infinite;
+        }
+        .dot-animation.delay-200 {
+          animation-delay: 0.2s;
+        }
+        .dot-animation.delay-400 {
+          animation-delay: 0.4s;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        /* Theme-aware hover effects */
+        .theme-hover {
+          transition: all 0.2s ease;
+        }
+        
+        .theme-hover:hover {
+          transform: scale(1.05);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+      `}</style>
+    </div>
+  );
+}

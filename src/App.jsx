@@ -29,6 +29,7 @@ import ForgotPassword from './components/public/pages/ForgotPassword';
 import ResetPassword from './components/public/pages/ResetPassword';
 import NotFoundPage from './components/public/NotFoundPage ';
 import VerifyAccount from './components/public/pages/VerifyAccount';
+import ChatPage from './app/chat/components/ChatPage';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -186,7 +187,7 @@ if (loading) {
               <Footer />
             </>
           }
-        /><Route
+        />        <Route
         path="/verify"
         element={
           <>
@@ -197,7 +198,17 @@ if (loading) {
         }
       />
       
-       
+        {/* Chat Route */}
+        <Route
+          path="/chat"
+          element={
+            <>
+             
+              <ChatPage />
+            
+            </>
+          }
+        />
 
         {/* Catch-all Route */}
         <Route path="*" element={<NotFoundPage />} />
