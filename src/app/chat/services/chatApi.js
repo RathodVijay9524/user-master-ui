@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.codewithvijay.online/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.codewithvijay.online/api';
+
+console.log('🔗 Chat API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
