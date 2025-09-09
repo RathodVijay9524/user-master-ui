@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
 import { setProvider } from "../../../../redux/chat/settingsSlice";
 import SettingsModal from "../SettingsModal";
-import { getApiBaseUrl, getEnvironmentInfo, getPossibleUrls } from "../../config/environment.js";
 
 const themes = {
   dark: {
@@ -63,7 +62,6 @@ export default function ChatBoxMcp() {
 
   const [playingId, setPlayingId] = useState(null);
   const [progress, setProgress] = useState({});
-  const [connectionStatus, setConnectionStatus] = useState('disabled');
 
   const { messages, isLoading: loading, error } = useSelector((state) => state.chat);
   const { provider, model, apiKey, baseUrl, temperature, maxTokens } = useSelector((state) => {
@@ -106,70 +104,6 @@ export default function ChatBoxMcp() {
       inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 128) + 'px';
     }
   }, [input]);
-
-  // Test connection to backend
-  useEffect(() => {
-    const testConnection = async () => {
-      try {
-        const API_BASE_URL = getApiBaseUrl();
-        const envInfo = getEnvironmentInfo();
-        
-        console.log('🔍 Testing connection to:', API_BASE_URL);
-        console.log('Current environment:', envInfo);
-        
-        // Try multiple endpoints to find the working one
-        const endpoints = [
-          '/api/chat/providers',
-          '/api/chat/message',
-          '/api/health',
-          '/health',
-          '/'
-        ];
-        
-        let connected = false;
-        
-        for (const endpoint of endpoints) {
-          try {
-            console.log(`Trying endpoint: ${API_BASE_URL}${endpoint}`);
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              mode: 'cors',
-            });
-            
-            console.log(`Response for ${endpoint}:`, response.status, response.statusText);
-            
-            if (response.ok || response.status === 404 || response.status === 405) {
-              // 404/405 means server is reachable but endpoint doesn't exist
-              setConnectionStatus('connected');
-              console.log('✅ Connection successful (server reachable)');
-              connected = true;
-              break;
-            }
-          } catch (endpointError) {
-            console.log(`❌ Endpoint ${endpoint} failed:`, endpointError.message);
-          }
-        }
-        
-        if (!connected) {
-          setConnectionStatus('error');
-          console.log('❌ All connection attempts failed');
-        }
-      } catch (error) {
-        setConnectionStatus('error');
-        console.log('❌ Connection error:', error);
-        console.log('Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-      }
-    };
-
-    testConnection();
-  }, []);
 
   useEffect(() => {
     let interval;
@@ -224,13 +158,8 @@ export default function ChatBoxMcp() {
   const handleSend = () => {
     if (!input.trim()) return;
     
-    // Basic debugging
-    console.log('=== SENDING MESSAGE ===');
-    console.log('User Agent:', navigator.userAgent);
-    console.log('Current URL:', window.location.href);
-    console.log('API Base URL:', getApiBaseUrl());
+    // Debug logging
     console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
-    console.log('========================');
     
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
@@ -679,146 +608,6 @@ export default function ChatBoxMcp() {
                       className="dot-animation w-2 h-2 rounded-full delay-400"
                       style={{ backgroundColor: colors.text }}
                     ></span>
-                  </div>
-                </div>
-              </div>
-            )}
-            {connectionStatus === 'error' && (
-              <div 
-                className="text-sm px-3 py-2 rounded-lg border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20"
-                style={{
-                  color: '#dc2626',
-                  backgroundColor: theme === 'light' ? '#fef2f2' : theme === 'dark' ? '#1f2937' : '#0f2a20',
-                  borderLeftColor: '#dc2626'
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div>⚠ Connection Error: Unable to connect to backend.</div>
-                    <div className="text-xs mt-1 opacity-75">You can still try sending a message - it might work!</div>
-                  </div>
-                  <button
-                    onClick={() => setConnectionStatus('disabled')}
-                    className="ml-2 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                  >
-                    Try Anyway
-                  </button>
-                </div>
-              </div>
-            )}
-            {connectionStatus === 'checking' && (
-              <div 
-                className="text-sm px-3 py-2 rounded-lg border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                style={{
-                  color: '#2563eb',
-                  backgroundColor: theme === 'light' ? '#eff6ff' : theme === 'dark' ? '#1e3a8a' : '#0f2a20',
-                  borderLeftColor: '#2563eb'
-                }}
-              >
-                🔄 Testing connection to backend...
-              </div>
-            )}
-            {connectionStatus === 'connected' && (
-              <div 
-                className="text-sm px-3 py-2 rounded-lg border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20"
-                style={{
-                  color: '#16a34a',
-                  backgroundColor: theme === 'light' ? '#f0fdf4' : theme === 'dark' ? '#14532d' : '#0f2a20',
-                  borderLeftColor: '#16a34a'
-                }}
-              >
-                ✅ Connected to backend successfully
-              </div>
-            )}
-            {connectionStatus === 'disabled' && (
-              <div 
-                className="text-sm px-3 py-2 rounded-lg border-l-4 border-gray-500 bg-gray-50 dark:bg-gray-900/20"
-                style={{
-                  color: '#6b7280',
-                  backgroundColor: theme === 'light' ? '#f9fafb' : theme === 'dark' ? '#374151' : '#0f2a20',
-                  borderLeftColor: '#6b7280'
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div>ℹ️ Connection test disabled. Try sending a message to test the connection.</div>
-                    <div className="text-xs mt-1 opacity-75">
-                      API URL: {getApiBaseUrl()}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setConnectionStatus('disabled')}
-                      className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                    >
-                      Skip Test
-                    </button>
-                    <button
-                      onClick={() => {
-                        console.log('🌐 Testing basic connectivity...');
-                        fetch('https://codewithvijay.online')
-                          .then(response => {
-                            console.log('✅ Main site accessible:', response.status);
-                            alert(`Main site is accessible! (Status: ${response.status})`);
-                          })
-                          .catch(error => {
-                            console.log('❌ Main site not accessible:', error);
-                            alert(`Main site not accessible. Error: ${error.message}`);
-                          });
-                      }}
-                      className="px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600"
-                    >
-                      Ping Site
-                    </button>
-                    <button
-                      onClick={() => {
-                        setConnectionStatus('checking');
-                        const testConnection = async () => {
-                          const possibleUrls = getPossibleUrls();
-                          const envInfo = getEnvironmentInfo();
-                          const endpoints = ['/', '/api/chat/providers', '/api/chat/message', '/health', '/api/health'];
-                          
-                          console.log('🔍 Testing multiple URLs and endpoints...');
-                          console.log('Environment:', envInfo.isLocal ? 'LOCAL' : 'PRODUCTION');
-                          
-                          for (const baseUrl of possibleUrls) {
-                            console.log(`Testing base URL: ${baseUrl}`);
-                            
-                            for (const endpoint of endpoints) {
-                              try {
-                                const fullUrl = `${baseUrl}${endpoint}`;
-                                console.log(`Testing: ${fullUrl}`);
-                                
-                                const response = await fetch(fullUrl, {
-                                  method: 'GET',
-                                  mode: 'cors',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                });
-                                
-                                console.log(`✅ ${fullUrl} - Status: ${response.status} ${response.statusText}`);
-                                
-                                if (response.ok || response.status === 404 || response.status === 405) {
-                                  console.log(`🎉 Found working URL: ${baseUrl}`);
-                                  setConnectionStatus('connected');
-                                  return;
-                                }
-                              } catch (error) {
-                                console.log(`❌ ${baseUrl}${endpoint} - Error: ${error.message}`);
-                              }
-                            }
-                          }
-                          
-                          console.log('❌ No working backend URL found');
-                          setConnectionStatus('error');
-                        };
-                        testConnection();
-                      }}
-                      className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                    >
-                      Test All URLs
-                    </button>
                   </div>
                 </div>
               </div>
