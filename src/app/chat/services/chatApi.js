@@ -1,6 +1,24 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.codewithvijay.online/api';
+// Detect environment and set appropriate API URL
+const getApiBaseUrl = () => {
+  // If environment variable is set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Check if we're running locally
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  if (isLocal) {
+    return 'http://localhost:9091/api';
+  }
+  
+  // Production fallback
+  return 'https://api.codewithvijay.online/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 console.log('🔗 Chat API Base URL:', API_BASE_URL);
 
