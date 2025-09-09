@@ -155,25 +155,48 @@ export default function ChatBoxMcp() {
     };
   }, [isRecording]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     
-    // Debug logging
+    // Mobile debugging
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('=== SENDING MESSAGE ===');
+    console.log('Is Mobile:', isMobile);
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Current URL:', window.location.href);
+    console.log('API Base URL:', getApiBaseUrl());
     console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
+    console.log('========================');
     
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
     
-    // Send message to backend for AI response
-    dispatch(sendMessage({ 
-      message: input, 
-      provider: provider || 'openai',
-      model: model || 'gpt-4',
-      apiKey: apiKey || '',
-      baseUrl: baseUrl || '',
-      temperature: temperature || 0.7,
-      maxTokens: maxTokens || 1000
-    }));
+    try {
+      // Send message to backend for AI response
+      const result = await dispatch(sendMessage({ 
+        message: input, 
+        provider: provider || 'openai',
+        model: model || 'gpt-4',
+        apiKey: apiKey || '',
+        baseUrl: baseUrl || '',
+        temperature: temperature || 0.7,
+        maxTokens: maxTokens || 1000
+      })).unwrap();
+      
+      console.log('✅ Message sent successfully:', result);
+    } catch (error) {
+      console.error('❌ Failed to send message:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        isMobile,
+        userAgent: navigator.userAgent
+      });
+      
+      // Show user-friendly error
+      setError(`Failed to send message: ${error.message}`);
+    }
     
     setInput("");
     

@@ -24,11 +24,40 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    console.log(`Response received from: ${response.config.url}`, response.status);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log(`✅ Response received from: ${response.config.url}`, response.status);
+    if (isMobile) {
+      console.log('📱 Mobile Response Success:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.config.url
+      });
+    }
     return response;
   },
   (error) => {
-    console.error('Response error:', error.response?.data || error.message);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.error('❌ Response error:', error.response?.data || error.message);
+    console.error('Error status:', error.response?.status);
+    console.error('Error config:', error.config);
+    console.error('Network error:', error.code);
+    
+    if (isMobile) {
+      console.error('📱 Mobile Error Details:', {
+        isMobile: true,
+        errorName: error.name,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorStatus: error.response?.status,
+        errorStatusText: error.response?.statusText,
+        isNetworkError: !error.response,
+        isTimeout: error.code === 'ECONNABORTED',
+        isCORS: error.message?.includes('CORS') || error.message?.includes('cross-origin'),
+        url: error.config?.url,
+        baseURL: error.config?.baseURL
+      });
+    }
+    
     return Promise.reject(error);
   }
 );
