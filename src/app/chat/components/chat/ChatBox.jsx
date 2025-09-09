@@ -224,38 +224,13 @@ export default function ChatBoxMcp() {
   const handleSend = () => {
     if (!input.trim()) return;
     
-    // Enhanced mobile debugging
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    
-    console.log('=== ENHANCED MOBILE DEBUG INFO ===');
+    // Basic debugging
+    console.log('=== SENDING MESSAGE ===');
     console.log('User Agent:', navigator.userAgent);
-    console.log('Is Mobile:', isMobile);
-    console.log('Is iOS:', isIOS);
-    console.log('Is Android:', isAndroid);
     console.log('Current URL:', window.location.href);
-    console.log('Protocol:', window.location.protocol);
-    console.log('Hostname:', window.location.hostname);
-    console.log('Port:', window.location.port);
     console.log('API Base URL:', getApiBaseUrl());
-    console.log('Environment Info:', getEnvironmentInfo());
     console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
-    
-    // Test basic connectivity
-    console.log('🌐 Testing basic connectivity...');
-    fetch(window.location.origin, {
-      method: 'GET',
-      mode: 'cors'
-    })
-    .then(response => {
-      console.log('✅ Basic connectivity test:', response.status);
-    })
-    .catch(connectError => {
-      console.log('❌ Basic connectivity failed:', connectError);
-    });
-    
-    console.log('=====================================');
+    console.log('========================');
     
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
@@ -780,18 +755,15 @@ export default function ChatBoxMcp() {
                     </button>
                     <button
                       onClick={() => {
-                        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                         console.log('🌐 Testing basic connectivity...');
-                        console.log('📱 Mobile Test:', { isMobile, userAgent: navigator.userAgent });
-                        
                         fetch('https://codewithvijay.online')
                           .then(response => {
                             console.log('✅ Main site accessible:', response.status);
-                            alert(`Main site is accessible! (Status: ${response.status})\nMobile: ${isMobile ? 'Yes' : 'No'}\nBackend might be on a different port.`);
+                            alert(`Main site is accessible! (Status: ${response.status})`);
                           })
                           .catch(error => {
                             console.log('❌ Main site not accessible:', error);
-                            alert(`Main site not accessible.\nError: ${error.message}\nMobile: ${isMobile ? 'Yes' : 'No'}\nCheck if the server is running.`);
+                            alert(`Main site not accessible. Error: ${error.message}`);
                           });
                       }}
                       className="px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600"
