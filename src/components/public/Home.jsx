@@ -48,6 +48,7 @@ const Home = () => {
           <Link to="/login" className="btn primary hover-effect">Login</Link>
           <Link to="/register" className="btn secondary hover-effect">Create Account</Link>
           <Link to="/chat" className="btn chat hover-effect">💬 Try AI Chat</Link>
+          <Link to="/portfolio" className="btn portfolio hover-effect">👨‍💻 View Portfolio</Link>
         </div>
       </section>
 

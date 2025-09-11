@@ -30,6 +30,7 @@ import ResetPassword from './components/public/pages/ResetPassword';
 import NotFoundPage from './components/public/NotFoundPage ';
 import VerifyAccount from './components/public/pages/VerifyAccount';
 import ChatPage from './app/chat/components/ChatPage';
+import PortfolioPage from './app/portfolio/components/PortfolioPage';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -206,6 +207,16 @@ if (loading) {
              
               <ChatPage />
             
+            </>
+          }
+        />
+
+        {/* Portfolio Route */}
+        <Route
+          path="/portfolio"
+          element={
+            <>
+              <PortfolioPage />
             </>
           }
         />
