@@ -39,21 +39,35 @@ const PortfolioNavbar = ({ activeSection, onNavigate }) => {
         </motion.div>
 
         {/* Desktop Navigation */}
-        <ul className="nav-links desktop-nav">
-          {navItems.map((item) => (
-            <li key={item.id}>
-              <motion.button
-                className={`nav-link ${activeSection === item.id ? 'active' : ''}`}
-                onClick={() => handleNavClick(item.id)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <i className={item.icon}></i>
-                <span>{item.label}</span>
-              </motion.button>
-            </li>
-          ))}
-        </ul>
+        <div className="nav-center">
+          <ul className="nav-links desktop-nav">
+            {navItems.map((item) => (
+              <li key={item.id}>
+                <motion.button
+                  className={`nav-link ${activeSection === item.id ? 'active' : ''}`}
+                  onClick={() => handleNavClick(item.id)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <i className={item.icon}></i>
+                  <span>{item.label}</span>
+                </motion.button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Home Button */}
+        <motion.a
+          href="/"
+          className="home-button"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+          title="Back to Home"
+        >
+          <i className="fas fa-home"></i>
+          <span className="home-text">Home</span>
+        </motion.a>
 
         {/* Mobile Menu Button */}
         <motion.button
@@ -93,6 +107,17 @@ const PortfolioNavbar = ({ activeSection, onNavigate }) => {
               </motion.button>
             </li>
           ))}
+          <li>
+            <motion.a
+              href="/"
+              className="nav-link home-mobile"
+              whileHover={{ x: 10 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <i className="fas fa-home"></i>
+              <span>Home</span>
+            </motion.a>
+          </li>
         </ul>
       </motion.div>
 
