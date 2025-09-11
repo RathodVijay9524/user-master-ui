@@ -51,17 +51,18 @@ const About = () => {
             
             <div className="about-description">
             <p>
-              I'm Vijay Rathod, a passionate Full Stack Developer with a strong 
-              educational background in Computer Science and Information Technology. 
-              I specialize in building responsive, scalable web applications using 
-              modern technologies and frameworks.
+              I'm Vijay Rathod, an experienced Software Engineer with 4.5+ years of expertise 
+              in Java 8, Spring Boot, Microservices, Angular, and React. I specialize in 
+              building secure REST APIs, implementing JWT, Spring Security, and transaction 
+              management for enterprise applications.
             </p>
-            
+
             <p>
-              With a Master's degree in Computer Science from Dr. Babasaheb Ambedkar 
-              University, I bring both theoretical knowledge and practical experience 
-              to every project. I believe in clean code, continuous learning, and 
-              the power of technology to solve real-world problems.
+              With hands-on experience in event-driven architecture using Kafka, Saga patterns 
+              (Orchestration & Choreography), and CQRS, I've worked with top clients like 
+              Barclays, Infosys, IBM, and Accenture. I'm also an expert in MCP Server with RAG, 
+              Spring AI, and Universal ChatBoat creation, bringing cutting-edge AI technologies 
+              to enterprise solutions.
             </p>
             </div>
 
@@ -70,26 +71,26 @@ const About = () => {
               variants={itemVariants}
             >
               <div className="highlight-item">
-                <i className="fas fa-code"></i>
+                <i className="fas fa-server"></i>
                 <div>
-                  <h4>Clean Code</h4>
-                  <p>Writing maintainable and scalable code</p>
+                  <h4>MCP Server & RAG Expert</h4>
+                  <p>Specialized in MCP Server with RAG and Spring AI implementation</p>
                 </div>
               </div>
               
               <div className="highlight-item">
-                <i className="fas fa-mobile-alt"></i>
+                <i className="fas fa-robot"></i>
                 <div>
-                  <h4>Responsive Design</h4>
-                  <p>Creating seamless experiences across devices</p>
+                  <h4>Universal ChatBoat Creation</h4>
+                  <p>Expert in building AI-powered chat applications and bots</p>
                 </div>
               </div>
               
               <div className="highlight-item">
-                <i className="fas fa-rocket"></i>
+                <i className="fas fa-microservices"></i>
                 <div>
-                  <h4>Performance</h4>
-                  <p>Optimizing for speed and efficiency</p>
+                  <h4>Microservices Architecture</h4>
+                  <p>4.5+ years experience in event-driven microservices with Kafka</p>
                 </div>
               </div>
             </motion.div>

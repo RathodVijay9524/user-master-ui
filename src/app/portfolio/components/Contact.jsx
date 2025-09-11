@@ -38,19 +38,19 @@ const Contact = () => {
     {
       icon: 'fas fa-envelope',
       title: 'Email',
-      value: 'vijayrathod@example.com',
-      link: 'mailto:vijayrathod@example.com'
+      value: 'rathodvijay9524@gmail.com',
+      link: 'mailto:rathodvijay9524@gmail.com'
     },
     {
       icon: 'fas fa-phone',
       title: 'Phone',
-      value: '+91 (999) 123-4567',
-      link: 'tel:+919991234567'
+      value: '+91-7020362114',
+      link: 'tel:+917020362114'
     },
     {
       icon: 'fas fa-map-marker-alt',
       title: 'Location',
-      value: 'Aurangabad, Maharashtra, India',
+      value: 'Pune, India',
       link: '#'
     },
     {
@@ -62,10 +62,10 @@ const Contact = () => {
   ];
 
   const socialLinks = [
-    { icon: 'fab fa-github', url: 'https://github.com/vijayrathod', label: 'GitHub' },
-    { icon: 'fab fa-linkedin', url: 'https://linkedin.com/in/vijayrathod', label: 'LinkedIn' },
-    { icon: 'fab fa-twitter', url: 'https://twitter.com/vijayrathod', label: 'Twitter' },
-    { icon: 'fab fa-instagram', url: 'https://instagram.com/vijayrathod', label: 'Instagram' }
+    { icon: 'fab fa-github', url: 'https://github.com/RathodVijay9524', label: 'GitHub' },
+    { icon: 'fab fa-linkedin', url: 'https://linkedin.com/in/vijay-rathod-software-engineer', label: 'LinkedIn' },
+    { icon: 'fab fa-twitter', url: 'https://twitter.com/vijayrathod9524', label: 'Twitter' },
+    { icon: 'fab fa-instagram', url: 'https://instagram.com/vijayrathod9524', label: 'Instagram' }
   ];
 
   const containerVariants = {

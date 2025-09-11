@@ -4,48 +4,91 @@ import { motion } from 'framer-motion';
 const Skills = () => {
   const skillCategories = [
     {
-      title: "Frontend Development",
-      icon: "fas fa-laptop-code",
+      title: "Programming Languages",
+      icon: "fas fa-code",
       color: "#4ea8de",
       skills: [
-        { name: "React.js", level: 95, icon: "fab fa-react" },
-        { name: "JavaScript", level: 90, icon: "fab fa-js-square" },
+        { name: "Java 8", level: 95, icon: "fab fa-java" },
+        { name: "Java", level: 90, icon: "fab fa-java" },
+        { name: "WebFlux", level: 85, icon: "fas fa-bolt" },
+        { name: "JavaScript", level: 88, icon: "fab fa-js-square" },
         { name: "TypeScript", level: 85, icon: "fab fa-js-square" },
-        { name: "HTML5", level: 95, icon: "fab fa-html5" },
-        { name: "CSS3", level: 90, icon: "fab fa-css3-alt" },
-        { name: "Tailwind CSS", level: 88, icon: "fas fa-palette" },
-        { name: "Bootstrap", level: 85, icon: "fab fa-bootstrap" },
-        { name: "Vue.js", level: 80, icon: "fab fa-vuejs" }
+        { name: "HTML5", level: 90, icon: "fab fa-html5" },
+        { name: "CSS3", level: 88, icon: "fab fa-css3-alt" }
       ]
     },
     {
-      title: "Backend Development",
+      title: "Frameworks & Technologies",
       icon: "fas fa-server",
       color: "#ff4c60",
       skills: [
-        { name: "Node.js", level: 90, icon: "fab fa-node-js" },
-        { name: "Express.js", level: 88, icon: "fas fa-code" },
-        { name: "Python", level: 85, icon: "fab fa-python" },
-        { name: "Java", level: 80, icon: "fab fa-java" },
-        { name: "Spring Boot", level: 75, icon: "fas fa-leaf" },
-        { name: "RESTful APIs", level: 92, icon: "fas fa-plug" },
-        { name: "GraphQL", level: 70, icon: "fas fa-project-diagram" },
-        { name: "Microservices", level: 75, icon: "fas fa-cubes" }
+        { name: "Spring Boot", level: 95, icon: "fas fa-leaf" },
+        { name: "Spring Security", level: 90, icon: "fas fa-shield-alt" },
+        { name: "Spring AOP", level: 85, icon: "fas fa-cogs" },
+        { name: "Spring Data JPA", level: 90, icon: "fas fa-database" },
+        { name: "Angular", level: 88, icon: "fab fa-angular" },
+        { name: "React", level: 85, icon: "fab fa-react" },
+        { name: "RxJS", level: 80, icon: "fas fa-sync" },
+        { name: "NgRx", level: 75, icon: "fas fa-store" }
       ]
     },
     {
-      title: "Database & Cloud",
-      icon: "fas fa-database",
+      title: "MCP Server & AI Technologies",
+      icon: "fas fa-robot",
       color: "#3deabf",
       skills: [
-        { name: "MongoDB", level: 85, icon: "fas fa-database" },
-        { name: "PostgreSQL", level: 80, icon: "fas fa-database" },
-        { name: "MySQL", level: 85, icon: "fas fa-database" },
-        { name: "Redis", level: 75, icon: "fas fa-memory" },
-        { name: "AWS", level: 80, icon: "fab fa-aws" },
-        { name: "Docker", level: 85, icon: "fab fa-docker" },
-        { name: "Kubernetes", level: 70, icon: "fas fa-cube" },
-        { name: "Firebase", level: 75, icon: "fas fa-fire" }
+        { name: "MCP Server", level: 95, icon: "fas fa-server" },
+        { name: "RAG (Retrieval Augmented Generation)", level: 90, icon: "fas fa-brain" },
+        { name: "Spring AI", level: 88, icon: "fas fa-ai" },
+        { name: "Universal ChatBoat", level: 92, icon: "fas fa-comments" },
+        { name: "AI Integration", level: 85, icon: "fas fa-robot" },
+        { name: "Machine Learning", level: 80, icon: "fas fa-chart-line" },
+        { name: "Natural Language Processing", level: 75, icon: "fas fa-language" }
+      ]
+    },
+    {
+      title: "Databases & DevOps",
+      icon: "fas fa-database",
+      color: "#c084fc",
+      skills: [
+        { name: "MySQL", level: 90, icon: "fas fa-database" },
+        { name: "Oracle", level: 85, icon: "fas fa-database" },
+        { name: "Redis", level: 80, icon: "fas fa-memory" },
+        { name: "Maven", level: 90, icon: "fas fa-tools" },
+        { name: "Git", level: 88, icon: "fab fa-git-alt" },
+        { name: "Jenkins", level: 85, icon: "fab fa-jenkins" },
+        { name: "Docker", level: 88, icon: "fab fa-docker" },
+        { name: "Kubernetes", level: 80, icon: "fas fa-cube" }
+      ]
+    },
+    {
+      title: "Microservices & Event-Driven",
+      icon: "fas fa-microservices",
+      color: "#f59e0b",
+      skills: [
+        { name: "Microservices Architecture", level: 92, icon: "fas fa-cubes" },
+        { name: "Kafka", level: 88, icon: "fas fa-stream" },
+        { name: "Saga Patterns", level: 85, icon: "fas fa-project-diagram" },
+        { name: "CQRS", level: 80, icon: "fas fa-sync-alt" },
+        { name: "Event-Driven Architecture", level: 88, icon: "fas fa-bolt" },
+        { name: "Eureka", level: 75, icon: "fas fa-search" },
+        { name: "Zipkin", level: 70, icon: "fas fa-search-plus" },
+        { name: "Sleuth", level: 75, icon: "fas fa-eye" }
+      ]
+    },
+    {
+      title: "Testing & Monitoring",
+      icon: "fas fa-bug",
+      color: "#ef4444",
+      skills: [
+        { name: "JUnit", level: 90, icon: "fas fa-vial" },
+        { name: "Mockito", level: 85, icon: "fas fa-mock" },
+        { name: "Postman", level: 88, icon: "fab fa-postman" },
+        { name: "Insomnia", level: 80, icon: "fas fa-moon" },
+        { name: "Log4j", level: 85, icon: "fas fa-file-alt" },
+        { name: "Splunk", level: 75, icon: "fas fa-chart-bar" },
+        { name: "Putty", level: 80, icon: "fas fa-terminal" },
+        { name: "Boot Admin", level: 70, icon: "fas fa-tachometer-alt" }
       ]
     },
     {

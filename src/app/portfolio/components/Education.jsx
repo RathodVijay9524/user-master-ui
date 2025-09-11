@@ -7,8 +7,8 @@ const Education = () => {
       id: 1,
       degree: "Master of Computer Science (MCS)",
       field: "Information Technology",
-      institution: "Dr. Babasaheb Ambedkar University, Aurangabad",
-      period: "2021 - 2024",
+      institution: "Dr. BAMU University, Aurangabad",
+      period: "2014",
       gpa: "6.1",
       description: "Specialized in Information Technology with focus on computer science fundamentals, software development, and modern technologies. Completed advanced coursework in programming, database management, and system design.",
       achievements: [

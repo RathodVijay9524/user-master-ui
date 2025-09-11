@@ -113,25 +113,25 @@ const Hero = ({ onNavigate }) => {
         </motion.div>
 
         <motion.div className="hero-text" variants={itemVariants}>
-          <motion.h1 
-            className="hero-title"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <span className="greeting">Hello, I'm</span>
-            <span className="name">Vijay Rathod</span>
-            <span className="title-text">
-              <span className="typing-text">Full Stack Developer</span>
-            </span>
-          </motion.h1>
+            <motion.h1 
+              className="hero-title"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            >
+              <span className="greeting">Hello, I'm</span>
+              <span className="name">Vijay Rathod</span>
+              <span className="title-text">
+                <span className="typing-text">Senior Software Engineer</span>
+              </span>
+            </motion.h1>
 
           <motion.p 
             className="hero-description"
             variants={itemVariants}
           >
-            I create amazing web experiences with modern technologies. 
-            Passionate about building scalable applications and solving complex problems.
+            Experienced Software Engineer with 4.5+ years in Java 8, Spring Boot, Microservices, 
+            Angular, and React. Expert in MCP Server with RAG, Spring AI, and Universal ChatBoat creation.
           </motion.p>
 
           <motion.div 

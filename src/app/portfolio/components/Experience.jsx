@@ -22,58 +22,58 @@ const Experience = () => {
   const experiences = [
     {
       id: 1,
-      title: "Senior Full Stack Developer",
-      company: "Tech Solutions Inc.",
-      period: "2023 - Present",
-      location: "Remote",
-      description: "Leading development of enterprise-grade web applications using React, Node.js, and cloud technologies. Mentoring junior developers and implementing best practices.",
-      technologies: ["React", "Node.js", "AWS", "Docker", "MongoDB"],
+      title: "Senior Software Engineer",
+      company: "Talent-Ployer (Payroll) | Client: Infosys | End Client: Barclays",
+      period: "May 2024 - Present",
+      location: "Pune, India",
+      description: "Developing business banking applications and backend APIs using Java, Spring Boot, and React. Working on secure microservices architecture for financial services.",
+      technologies: ["Java", "Spring Boot", "React", "Microservices", "JWT", "Spring Security"],
       achievements: [
-        "Improved application performance by 40%",
-        "Led team of 5 developers",
-        "Implemented CI/CD pipelines"
+        "Developed business banking applications and backend APIs",
+        "Implemented secure microservices architecture",
+        "Worked with top-tier financial client (Barclays)"
       ]
     },
     {
       id: 2,
-      title: "Full Stack Developer",
-      company: "Digital Innovations",
-      period: "2022 - 2023",
-      location: "New York, NY",
-      description: "Developed and maintained multiple client projects using modern web technologies. Collaborated with cross-functional teams to deliver high-quality solutions.",
-      technologies: ["Vue.js", "Express.js", "PostgreSQL", "Redis"],
+      title: "Software Engineer",
+      company: "Civica, Vadodara (Remote - Pune)",
+      period: "May 2023 - May 2024",
+      location: "Pune, India",
+      description: "Built UI and backend APIs for Australian local government platform using Java, Spring Boot, and Angular. Implemented event-driven architecture with Kafka.",
+      technologies: ["Java", "Spring Boot", "Angular", "Kafka", "Microservices", "Event-Driven Architecture"],
       achievements: [
-        "Delivered 15+ successful projects",
-        "Reduced bug reports by 60%",
-        "Implemented automated testing"
+        "Built UI and backend APIs for Australian local government platform",
+        "Implemented event-driven architecture with Kafka",
+        "Worked on international government projects"
       ]
     },
     {
       id: 3,
-      title: "Frontend Developer",
-      company: "WebCraft Studio",
-      period: "2021 - 2022",
-      location: "San Francisco, CA",
-      description: "Specialized in creating responsive and interactive user interfaces. Worked closely with designers to implement pixel-perfect designs.",
-      technologies: ["React", "TypeScript", "Sass", "Webpack"],
+      title: "Software Engineer",
+      company: "IBM, Pune (Payroll: Primus Globule)",
+      period: "Dec 2022 - Feb 2023",
+      location: "Pune, India",
+      description: "Developed logistics microservices for Navistar's WMS platform using Java, Spring Boot, and Angular. Implemented Saga patterns and CQRS for scalable systems.",
+      technologies: ["Java", "Spring Boot", "Angular", "Saga Patterns", "CQRS", "WMS"],
       achievements: [
-        "Built 20+ responsive websites",
-        "Improved user engagement by 35%",
-        "Established coding standards"
+        "Developed logistics microservices for Navistar's WMS platform",
+        "Implemented Saga patterns (Orchestration & Choreography)",
+        "Worked with enterprise logistics systems"
       ]
     },
     {
       id: 4,
-      title: "Junior Developer",
-      company: "StartupHub",
-      period: "2020 - 2021",
-      location: "Austin, TX",
-      description: "Started my professional journey building web applications and learning industry best practices. Contributed to various projects and gained valuable experience.",
-      technologies: ["JavaScript", "HTML5", "CSS3", "jQuery"],
+      title: "Software Engineer",
+      company: "Accenture, Pune (Payroll: Primus Globule)",
+      period: "June 2021 - June 2022",
+      location: "Pune, India",
+      description: "Worked on secure microservices and enterprise UI development using Java, Spring Boot, and Angular. Implemented CI/CD pipelines and DevOps practices.",
+      technologies: ["Java", "Spring Boot", "Angular", "CI/CD", "DevOps", "Enterprise Applications"],
       achievements: [
-        "Completed 10+ learning projects",
-        "Contributed to open source",
-        "Earned first professional certifications"
+        "Worked on secure microservices and enterprise UI development",
+        "Implemented CI/CD pipelines using Jenkins and Docker",
+        "Gained experience in enterprise development practices"
       ]
     }
   ];
