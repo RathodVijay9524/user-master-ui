@@ -17,6 +17,11 @@ const PortfolioNavbar = ({ activeSection, onNavigate }) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleNavClick = (sectionId) => {
+    onNavigate(sectionId);
+    setIsMobileMenuOpen(false); // Close mobile menu after navigation
+  };
+
   return (
     <motion.nav 
       className="portfolio-navbar"
@@ -39,7 +44,7 @@ const PortfolioNavbar = ({ activeSection, onNavigate }) => {
             <li key={item.id}>
               <motion.button
                 className={`nav-link ${activeSection === item.id ? 'active' : ''}`}
-                onClick={() => onNavigate(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -79,10 +84,7 @@ const PortfolioNavbar = ({ activeSection, onNavigate }) => {
             <li key={item.id}>
               <motion.button
                 className={`nav-link ${activeSection === item.id ? 'active' : ''}`}
-                onClick={() => {
-                  onNavigate(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
+                onClick={() => handleNavClick(item.id)}
                 whileHover={{ x: 10 }}
                 whileTap={{ scale: 0.95 }}
               >
