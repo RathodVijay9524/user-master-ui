@@ -113,18 +113,33 @@ const Hero = ({ onNavigate }) => {
         </motion.div>
 
         <motion.div className="hero-text" variants={itemVariants}>
-            <motion.h1 
-              className="hero-title"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              <span className="greeting">Hello, I'm</span>
-              <span className="name">Vijay Rathod</span>
-              <span className="title-text">
-                <span className="typing-text">Senior Software Engineer</span>
-              </span>
-            </motion.h1>
+          <motion.div 
+            className="hero-greeting"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Hello, I'm
+          </motion.div>
+          
+          <motion.h1 
+            className="hero-title"
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
+          >
+            <span className="name-first">Vijay</span>
+            <span className="name-last">Rathod</span>
+          </motion.h1>
+          
+          <motion.div 
+            className="hero-profession"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            Senior Software Engineer
+          </motion.div>
 
           <motion.p 
             className="hero-description"

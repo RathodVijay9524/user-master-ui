@@ -444,34 +444,42 @@
   text-align: left;
 }
 
-.hero-title {
-  font-size: 3.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
-}
-
-.greeting {
-  display: block;
-  font-size: 1.5rem;
+.hero-greeting {
+  font-size: 1.2rem;
   color: #8899aa;
   margin-bottom: 0.5rem;
+  font-weight: 400;
 }
 
-.name {
-  display: block;
-  background: linear-gradient(135deg, #4ea8de, #ff4c60);
+.hero-title {
+  font-size: 4rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.name-first {
+  background: linear-gradient(135deg, #4ea8de, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-size: 4rem;
-  margin-bottom: 0.5rem;
 }
 
-.title-text {
-  display: block;
-  color: #e0e6ed;
-  font-size: 2rem;
+.name-last {
+  background: linear-gradient(135deg, #ff4c60, #d63384);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-profession {
+  font-size: 1.5rem;
+  color: #10b981;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
 }
 
 .typing-text {
@@ -2089,18 +2097,22 @@
     padding: 2rem 1rem;
   }
 
+  .hero-greeting {
+    font-size: 1rem;
+  }
+
   .hero-title {
-    font-size: 1.8rem;
-    line-height: 1.2;
+    font-size: 2.5rem;
+    line-height: 1.1;
+    flex-direction: column;
+    gap: 0;
   }
 
-  .name {
-    font-size: 2.2rem;
-    display: block;
-    margin: 0.5rem 0;
+  .name-first, .name-last {
+    font-size: 2.5rem;
   }
 
-  .title-text {
+  .hero-profession {
     font-size: 1.2rem;
   }
 
@@ -2538,10 +2550,15 @@
 
   .hero-title {
     font-size: 2rem;
+    flex-direction: column;
   }
 
-  .name {
-    font-size: 2.5rem;
+  .name-first, .name-last {
+    font-size: 2rem;
+  }
+
+  .hero-profession {
+    font-size: 1rem;
   }
 
   .section-title {
