@@ -150,8 +150,7 @@ const Skills = () => {
           className="skills-content"
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          animate="visible"
         >
           <motion.div className="section-header" variants={categoryVariants}>
             <h2 className="section-title">
@@ -170,8 +169,7 @@ const Skills = () => {
                 className="skill-category"
                 variants={categoryVariants}
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
+                animate="visible"
               >
                 <div className="category-header">
                   <div 
@@ -190,8 +188,7 @@ const Skills = () => {
                       className="skill-item"
                       variants={skillVariants}
                       initial="hidden"
-                      whileInView="visible"
-                      viewport={{ once: true, amount: 0.3 }}
+                      animate="visible"
                       transition={{ delay: skillIndex * 0.1 }}
                       whileHover={{ 
                         scale: 1.05,
@@ -211,9 +208,8 @@ const Skills = () => {
                           className="skill-progress"
                           style={{ backgroundColor: category.color }}
                           initial={{ width: 0 }}
-                          whileInView={{ width: `${skill.level}%` }}
+                          animate={{ width: `${skill.level}%` }}
                           transition={{ duration: 1.5, delay: skillIndex * 0.1 }}
-                          viewport={{ once: true }}
                         />
                       </div>
                     </motion.div>
@@ -227,8 +223,7 @@ const Skills = () => {
             className="skills-summary"
             variants={categoryVariants}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            animate="visible"
           >
             <div className="summary-card">
               <h3>Why Choose Me?</h3>
