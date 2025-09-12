@@ -173,14 +173,8 @@ const chatSlice = createSlice({
     
     // Load conversation messages into main chat
     loadConversationMessages: (state, action) => {
-      console.log('🔄 chatSlice.loadConversationMessages - Received payload:', action.payload);
-      console.log('📊 chatSlice.loadConversationMessages - Number of messages:', action.payload?.length || 0);
       state.messages = action.payload || [];
       state.currentConversationId = action.payload?.[0]?.conversationId || state.currentConversationId;
-      console.log('✅ chatSlice.loadConversationMessages - Updated state:', {
-        messagesCount: state.messages.length,
-        currentConversationId: state.currentConversationId
-      });
     },
     
     // Send chat message (simplified for UI)

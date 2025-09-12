@@ -27,32 +27,10 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
     console.log('ChatList - No conversations found for user');
   }
 
-  const testApiCall = async () => {
-    try {
-      console.log('🧪 Testing API call manually...');
-      const userId = user.id || user.userId;
-      const response = await fetch(`http://localhost:9091/api/chat/users/${userId}/chats`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('🧪 Manual API response:', response.status, response.statusText);
-      const data = await response.json();
-      console.log('🧪 Manual API data:', data);
-    } catch (error) {
-      console.error('🧪 Manual API error:', error);
-    }
-  };
 
   const handleConversationClick = async (conversation) => {
-    console.log('🔥 CLICK DETECTED! Conversation clicked:', conversation);
     try {
-      console.log('🎯 ChatList - Clicking conversation:', conversation);
       const userId = user.id || user.userId;
-      
-      console.log('🔍 ChatList - Fetching messages for userId:', userId, 'conversationId:', conversation.conversationId);
       
       // Fetch messages for this conversation
       const messagesResponse = await dispatch(fetchConversationMessages({ 
@@ -60,16 +38,11 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
         conversationId: conversation.conversationId 
       })).unwrap();
       
-      console.log('📨 ChatList - Messages response:', messagesResponse);
-      console.log('🔍 ChatList - First message structure:', messagesResponse[0]);
-      
       // Convert conversation messages to chat messages format
       // Each message object contains both userMessage and aiResponse, so we need to create two messages
       const chatMessages = [];
       
       messagesResponse.forEach((msg, index) => {
-        console.log(`🔍 ChatList - Converting message ${index}:`, msg);
-        
         // Create user message if userMessage exists
         if (msg.userMessage) {
           const userMessage = {
@@ -82,7 +55,6 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
             model: conversation.model
           };
           chatMessages.push(userMessage);
-          console.log(`🔍 ChatList - Added user message: ${msg.userMessage.substring(0, 50)}...`);
         }
         
         // Create AI message if aiResponse exists
@@ -97,28 +69,19 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
             model: conversation.model
           };
           chatMessages.push(aiMessage);
-          console.log(`🔍 ChatList - Added AI message: ${msg.aiResponse.substring(0, 50)}...`);
         }
       });
       
-      console.log('🔄 ChatList - Converted messages:', chatMessages);
-      console.log('📊 ChatList - Number of messages:', chatMessages.length);
-      
       // Load messages into main chat area
-      console.log('🚀 ChatList - Dispatching loadConversationMessages...');
       dispatch(loadConversationMessages(chatMessages));
       
       // Set as current conversation
-      console.log('🎯 ChatList - Setting current conversation...');
       dispatch(setCurrentConversation(conversation));
       
       // Update chat slice with the conversation ID
-      console.log('🔄 ChatList - Resetting conversation ID...');
       dispatch(resetConversationId(conversation.conversationId));
       
       // Close the chat history modal
-      console.log('❌ ChatList - Closing modal...');
-      // Add a small delay to ensure messages are loaded before closing
       setTimeout(() => {
         if (onClose) {
           onClose();
@@ -126,7 +89,6 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
       }, 100);
       
       setExpandedConversation(conversation.conversationId);
-      console.log('✅ ChatList - Conversation click completed successfully!');
     } catch (error) {
       console.error('❌ ChatList - Failed to load conversation:', error);
     }
@@ -244,21 +206,13 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
             <span className="mr-2 text-xl">💬</span>
             Chat History
           </h3>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={testApiCall}
-              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
-            >
-              🧪 Test API
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              style={{ color: theme?.text || '#6b7280' }}
-            >
-              ✕
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+            style={{ color: theme?.text || '#6b7280' }}
+          >
+            ✕
+          </button>
         </div>
         
         {/* Search Input */}
