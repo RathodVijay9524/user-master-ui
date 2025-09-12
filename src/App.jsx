@@ -32,12 +32,16 @@ import VerifyAccount from './components/public/pages/VerifyAccount';
 import ChatPage from './app/chat/components/ChatPage';
 import PortfolioPage from './app/portfolio/components/PortfolioPage';
 import ChatAccessGuard from './components/chat/ChatAccessGuard';
+import { initializeAxiosInstance } from './redux/axiosInstance';
 
 const App = () => {
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    // Initialize axios instance with fallback mechanism
+    initializeAxiosInstance();
+    
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('jwtToken');
   
