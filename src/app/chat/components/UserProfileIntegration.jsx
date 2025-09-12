@@ -11,14 +11,15 @@ const UserProfileIntegration = ({ onClose, theme }) => {
   const [showDropdown, setShowDropdown] = useState(true); // Always show since it's a modal
   const dropdownRef = useRef(null);
 
-  // Debug logging
-  console.log('UserProfileIntegration - User data:', user);
-  console.log('UserProfileIntegration - Theme:', theme);
-
   // Determine roles
   const hasAdminRole = user?.roles?.some((role) => role.name === 'ROLE_ADMIN');
   const hasWorkerRole = user?.roles?.some((role) => role.name === 'ROLE_WORKER');
   const hasUserRole = user?.roles?.some((role) => role.name === 'ROLE_NORMAL');
+
+  // Debug logging
+  console.log('UserProfileIntegration - User data:', user);
+  console.log('UserProfileIntegration - Theme:', theme);
+  console.log('UserProfileIntegration - Role check:', { hasAdminRole, hasWorkerRole, hasUserRole });
 
   const handleLogout = () => {
     dispatch(logout());
@@ -148,22 +149,24 @@ const UserProfileIntegration = ({ onClose, theme }) => {
               <span className="text-sm font-medium">My Profile</span>
             </button>
 
-            <button 
-              className="text-center px-3 py-3 rounded-lg transition-all duration-200 flex flex-col items-center group hover:scale-[1.02] hover:shadow-md"
-              style={{ 
-                backgroundColor: theme?.bubble || '#f8fafc',
-                color: theme?.text || '#1f2937'
-              }}
-              onClick={navigateToUserPanel}
-            >
-              <span 
-                className="text-2xl mb-1 transition-all duration-200 group-hover:scale-110"
-                style={{ color: theme?.accent || '#ff9800' }}
+            {hasUserRole && (
+              <button 
+                className="text-center px-3 py-3 rounded-lg transition-all duration-200 flex flex-col items-center group hover:scale-[1.02] hover:shadow-md"
+                style={{ 
+                  backgroundColor: theme?.bubble || '#f8fafc',
+                  color: theme?.text || '#1f2937'
+                }}
+                onClick={navigateToUserPanel}
               >
-                👤
-              </span>
-              <span className="text-sm font-medium">User Panel</span>
-            </button>
+                <span 
+                  className="text-2xl mb-1 transition-all duration-200 group-hover:scale-110"
+                  style={{ color: theme?.accent || '#ff9800' }}
+                >
+                  👤
+                </span>
+                <span className="text-sm font-medium">User Panel</span>
+              </button>
+            )}
 
             {hasAdminRole && (
               <button 
