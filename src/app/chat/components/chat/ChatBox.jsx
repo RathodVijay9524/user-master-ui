@@ -5,6 +5,9 @@ import { sendChat, clear, resetConversationId, sendMessage } from "../../../../r
 import { setProvider } from "../../../../redux/chat/settingsSlice";
 import SettingsModal from "../SettingsModal";
 import UserProfileIntegration from "../UserProfileIntegration";
+import ChatList from "../ChatList";
+import ConversationHistory from "../ConversationHistory";
+import ChatStatistics from "../ChatStatistics";
 
 const themes = {
   dark: {
@@ -56,6 +59,9 @@ export default function ChatBoxMcp() {
   const [input, setInput] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [showChatList, setShowChatList] = useState(false);
+  const [showConversationHistory, setShowConversationHistory] = useState(false);
+  const [showChatStats, setShowChatStats] = useState(false);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -275,21 +281,58 @@ export default function ChatBoxMcp() {
         </div>
 
         {(!sidebarCollapsed || mobileSidebarOpen) && (
-          <button
-            onClick={() => {
-              resetConversationId();
-              dispatch(clear());
-              setMobileSidebarOpen(false);
-            }}
-            className="py-2 px-3 rounded-lg mb-4 flex items-center justify-center text-sm hover:opacity-80 transition-all duration-200 shadow-md hover:shadow-lg"
-            style={{
-              backgroundColor: colors.userBubble,
-              color: colors.userText,
-              boxShadow: `0 2px 6px ${colors.userBubble}20`,
-            }}
-          >
-            + New Chat
-          </button>
+          <div className="space-y-2 mb-4">
+            <button
+              onClick={() => {
+                resetConversationId();
+                dispatch(clear());
+                setMobileSidebarOpen(false);
+              }}
+              className="w-full py-2 px-3 rounded-lg flex items-center justify-center text-sm hover:opacity-80 transition-all duration-200 shadow-md hover:shadow-lg"
+              style={{
+                backgroundColor: colors.userBubble,
+                color: colors.userText,
+                boxShadow: `0 2px 6px ${colors.userBubble}20`,
+              }}
+            >
+              + New Chat
+            </button>
+            
+            {/* Chat List Buttons */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setShowChatList(true);
+                  setMobileSidebarOpen(false);
+                }}
+                className="py-2 px-2 rounded-lg text-xs hover:opacity-80 transition-all duration-200 flex items-center justify-center"
+                style={{
+                  backgroundColor: colors.bubble,
+                  color: colors.text,
+                  border: `1px solid ${colors.border}`
+                }}
+                title="Chat History"
+              >
+                💬 History
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowChatStats(true);
+                  setMobileSidebarOpen(false);
+                }}
+                className="py-2 px-2 rounded-lg text-xs hover:opacity-80 transition-all duration-200 flex items-center justify-center"
+                style={{
+                  backgroundColor: colors.bubble,
+                  color: colors.text,
+                  border: `1px solid ${colors.border}`
+                }}
+                title="Chat Statistics"
+              >
+                📊 Stats
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Provider Selector */}
@@ -814,6 +857,103 @@ export default function ChatBoxMcp() {
 
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} theme={colors} />}
       {showUserProfile && <UserProfileIntegration onClose={() => setShowUserProfile(false)} theme={colors} />}
+      
+      {/* Chat List Modal */}
+      {showChatList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div
+            className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+            style={{
+              backgroundColor: colors.main || '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+            }}
+          >
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: colors.border || '#e5e7eb' }}
+            >
+              <h2
+                className="text-lg font-bold flex items-center"
+                style={{ color: colors.text || '#1f2937' }}
+              >
+                <span className="mr-2 text-xl" style={{ color: colors.accent || '#ff9800' }}>💬</span>
+                Chat History
+              </h2>
+              <button
+                onClick={() => setShowChatList(false)}
+                className="text-xl transition-all duration-200 hover:scale-110 hover:rotate-90"
+                style={{ color: colors.text || '#6b7280' }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ChatList 
+                onConversationSelect={(conversation) => {
+                  setShowConversationHistory(true);
+                  setShowChatList(false);
+                }}
+                theme={colors}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Conversation History Modal */}
+      {showConversationHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div
+            className="rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col"
+            style={{
+              backgroundColor: colors.main || '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+            }}
+          >
+            <ConversationHistory 
+              conversation={null} // Will be set by Redux state
+              theme={colors}
+              onClose={() => setShowConversationHistory(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Chat Statistics Modal */}
+      {showChatStats && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div
+            className="rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] flex flex-col"
+            style={{
+              backgroundColor: colors.main || '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+            }}
+          >
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: colors.border || '#e5e7eb' }}
+            >
+              <h2
+                className="text-lg font-bold flex items-center"
+                style={{ color: colors.text || '#1f2937' }}
+              >
+                <span className="mr-2 text-xl" style={{ color: colors.accent || '#ff9800' }}>📊</span>
+                Chat Statistics
+              </h2>
+              <button
+                onClick={() => setShowChatStats(false)}
+                className="text-xl transition-all duration-200 hover:scale-110 hover:rotate-90"
+                style={{ color: colors.text || '#6b7280' }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden p-4">
+              <ChatStatistics theme={colors} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes wave {

@@ -5,6 +5,7 @@ import workerReducer from './workerSlice';
 import chatReducer from './chat/chatSlice';
 import settingsReducer from './chat/settingsSlice';
 import themeReducer from './chat/themeSlice';
+import chatListReducer from './chat/chatListSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +14,8 @@ export const store = configureStore({
     workers: workerReducer,
     chat: chatReducer,
     settings: settingsReducer,
-    theme: themeReducer
+    theme: themeReducer,
+    chatList: chatListReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
