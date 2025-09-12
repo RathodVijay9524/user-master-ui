@@ -1,31 +1,7 @@
 import axiosInstance from '../../../redux/axiosInstance';
 
-// Use the existing axiosInstance which has JWT authentication
+// Use the existing axiosInstance which has JWT authentication and interceptors
 const api = axiosInstance;
-
-// Request interceptor for logging
-api.interceptors.request.use(
-  (config) => {
-    console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
-    return config;
-  },
-  (error) => {
-    console.error('Request error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => {
-    console.log(`Response received from: ${response.config.url}`, response.status);
-    return response;
-  },
-  (error) => {
-    console.error('Response error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
 
 export const chatApi = {
   // Get all available providers
@@ -62,13 +38,25 @@ export const chatApi = {
 
   // Get user's chat list/conversations
   getUserChats: async (userId) => {
-    console.log('chatApi.getUserChats - Requesting chats for userId:', userId);
+    console.log('🔍 chatApi.getUserChats - Requesting chats for userId:', userId);
+    console.log('🔍 Current axios baseURL:', api.defaults.baseURL);
+    console.log('🔍 JWT Token present:', !!localStorage.getItem('jwtToken'));
+    
     try {
       const response = await api.get(`/chat/users/${userId}/chats`);
-      console.log('chatApi.getUserChats - Response:', response.data);
+      console.log('✅ chatApi.getUserChats - Response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('chatApi.getUserChats - Error:', error);
+      console.error('❌ chatApi.getUserChats - Error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL
+      });
       throw error;
     }
   },

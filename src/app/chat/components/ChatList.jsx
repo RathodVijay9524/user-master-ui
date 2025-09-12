@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchUserChats, fetchConversationMessages, setCurrentConversation } from '../../../redux/chat/chatListSlice';
-import { resetConversationId } from '../../../redux/chat/chatSlice';
+import { resetConversationId, loadConversationMessages } from '../../../redux/chat/chatSlice';
 
-const ChatList = ({ onConversationSelect, theme }) => {
+const ChatList = ({ onConversationSelect, theme, onClose }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { conversations, isLoading, error } = useSelector((state) => state.chatList);
@@ -21,36 +21,127 @@ const ChatList = ({ onConversationSelect, theme }) => {
 
   // Debug logging
   console.log('ChatList - Current state:', { conversations, isLoading, error, user });
+  
+  // Check if we have conversations data
+  if (conversations && Array.isArray(conversations) && conversations.length === 0 && !isLoading && !error) {
+    console.log('ChatList - No conversations found for user');
+  }
+
+  const testApiCall = async () => {
+    try {
+      console.log('🧪 Testing API call manually...');
+      const userId = user.id || user.userId;
+      const response = await fetch(`http://localhost:9091/api/chat/users/${userId}/chats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('🧪 Manual API response:', response.status, response.statusText);
+      const data = await response.json();
+      console.log('🧪 Manual API data:', data);
+    } catch (error) {
+      console.error('🧪 Manual API error:', error);
+    }
+  };
 
   const handleConversationClick = async (conversation) => {
+    console.log('🔥 CLICK DETECTED! Conversation clicked:', conversation);
     try {
+      console.log('🎯 ChatList - Clicking conversation:', conversation);
       const userId = user.id || user.userId;
       
+      console.log('🔍 ChatList - Fetching messages for userId:', userId, 'conversationId:', conversation.conversationId);
+      
       // Fetch messages for this conversation
-      await dispatch(fetchConversationMessages({ 
+      const messagesResponse = await dispatch(fetchConversationMessages({ 
         userId, 
         conversationId: conversation.conversationId 
       })).unwrap();
       
+      console.log('📨 ChatList - Messages response:', messagesResponse);
+      console.log('🔍 ChatList - First message structure:', messagesResponse[0]);
+      
+      // Convert conversation messages to chat messages format
+      // Each message object contains both userMessage and aiResponse, so we need to create two messages
+      const chatMessages = [];
+      
+      messagesResponse.forEach((msg, index) => {
+        console.log(`🔍 ChatList - Converting message ${index}:`, msg);
+        
+        // Create user message if userMessage exists
+        if (msg.userMessage) {
+          const userMessage = {
+            id: `msg-user-${msg.id || index}`,
+            role: 'user',
+            text: msg.userMessage,
+            timestamp: msg.timestamp || new Date().toISOString(),
+            conversationId: conversation.conversationId,
+            provider: conversation.provider,
+            model: conversation.model
+          };
+          chatMessages.push(userMessage);
+          console.log(`🔍 ChatList - Added user message: ${msg.userMessage.substring(0, 50)}...`);
+        }
+        
+        // Create AI message if aiResponse exists
+        if (msg.aiResponse) {
+          const aiMessage = {
+            id: `msg-ai-${msg.id || index}`,
+            role: 'assistant',
+            text: msg.aiResponse,
+            timestamp: msg.timestamp || new Date().toISOString(),
+            conversationId: conversation.conversationId,
+            provider: conversation.provider,
+            model: conversation.model
+          };
+          chatMessages.push(aiMessage);
+          console.log(`🔍 ChatList - Added AI message: ${msg.aiResponse.substring(0, 50)}...`);
+        }
+      });
+      
+      console.log('🔄 ChatList - Converted messages:', chatMessages);
+      console.log('📊 ChatList - Number of messages:', chatMessages.length);
+      
+      // Load messages into main chat area
+      console.log('🚀 ChatList - Dispatching loadConversationMessages...');
+      dispatch(loadConversationMessages(chatMessages));
+      
       // Set as current conversation
+      console.log('🎯 ChatList - Setting current conversation...');
       dispatch(setCurrentConversation(conversation));
       
       // Update chat slice with the conversation ID
+      console.log('🔄 ChatList - Resetting conversation ID...');
       dispatch(resetConversationId(conversation.conversationId));
       
-      // Notify parent component
-      if (onConversationSelect) {
-        onConversationSelect(conversation);
-      }
+      // Close the chat history modal
+      console.log('❌ ChatList - Closing modal...');
+      // Add a small delay to ensure messages are loaded before closing
+      setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 100);
       
       setExpandedConversation(conversation.conversationId);
+      console.log('✅ ChatList - Conversation click completed successfully!');
     } catch (error) {
-      console.error('Failed to load conversation:', error);
+      console.error('❌ ChatList - Failed to load conversation:', error);
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    
     const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Unknown';
+    }
+    
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -133,59 +224,128 @@ const ChatList = ({ onConversationSelect, theme }) => {
     );
   }
 
+  const truncateModel = (model) => {
+    if (!model) return 'Unknown';
+    if (typeof model === 'string' && model.length > 30) {
+      return model.substring(0, 30) + '...';
+    }
+    if (Array.isArray(model)) {
+      return model.length > 0 ? model[0] + (model.length > 1 ? ` +${model.length - 1}` : '') : 'Unknown';
+    }
+    return model;
+  };
+
   return (
-    <div className="space-y-2">
-      <div className="px-3 py-2 border-b" style={{ borderColor: theme?.border || '#e5e7eb' }}>
-        <h3 className="text-sm font-semibold" style={{ color: theme?.text || '#1f2937' }}>
-          Recent Conversations ({conversations.length})
-        </h3>
+    <div className="h-full flex flex-col">
+      {/* Header with Search */}
+      <div className="px-4 py-4 border-b flex-shrink-0" style={{ borderColor: theme?.border || '#e5e7eb' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold flex items-center" style={{ color: theme?.text || '#1f2937' }}>
+            <span className="mr-2 text-xl">💬</span>
+            Chat History
+          </h3>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={testApiCall}
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
+            >
+              🧪 Test API
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              style={{ color: theme?.text || '#6b7280' }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+        
+        {/* Search Input */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            className="w-full px-4 py-2 pl-10 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+            style={{
+              backgroundColor: theme?.bubble || '#f8fafc',
+              borderColor: theme?.border || '#e5e7eb',
+              color: theme?.text || '#1f2937',
+              focusRingColor: theme?.accent || '#ff9800'
+            }}
+          />
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm opacity-60" style={{ color: theme?.text || '#6b7280' }}>
+            🔍
+          </span>
+        </div>
       </div>
       
-      <div className="max-h-96 overflow-y-auto space-y-1">
-        {conversations.map((conversation) => (
+      {/* Conversations List */}
+      <div className="flex-1 overflow-y-auto space-y-2 px-2 py-2">
+        <div className="text-xs font-medium mb-2 px-2" style={{ color: theme?.text || '#6b7280' }}>
+          Recent Conversations ({conversations.length})
+        </div>
+        
+        {conversations.map((conversation, index) => (
           <div
             key={conversation.id}
-            className={`p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
-              expandedConversation === conversation.conversationId ? 'ring-2' : ''
+            className={`group p-4 rounded-xl cursor-pointer hover-lift animate-slide-in-up ${
+              expandedConversation === conversation.conversationId ? 'ring-2 shadow-lg' : ''
             }`}
             style={{
               backgroundColor: expandedConversation === conversation.conversationId 
-                ? theme?.accent + '20' || '#ff980020'
+                ? theme?.accent + '15' || '#ff980015'
                 : theme?.bubble || '#f8fafc',
               borderColor: expandedConversation === conversation.conversationId 
                 ? theme?.accent || '#ff9800'
                 : 'transparent',
-              border: expandedConversation === conversation.conversationId ? '1px solid' : 'none'
+              border: expandedConversation === conversation.conversationId ? '1px solid' : 'none',
+              animationDelay: `${index * 100}ms`
             }}
             onClick={() => handleConversationClick(conversation)}
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center space-x-2 flex-1 min-w-0">
-                <span className="text-lg">{getProviderIcon(conversation.provider)}</span>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-sm" style={{ backgroundColor: theme?.accent + '20' || '#ff980020' }}>
+                  {getProviderIcon(conversation.provider)}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div 
-                    className="text-sm font-medium truncate"
+                    className="text-sm font-semibold truncate mb-1"
                     style={{ color: theme?.text || '#1f2937' }}
                     title={conversation.title}
                   >
                     {conversation.title}
                   </div>
                   <div 
-                    className="text-xs opacity-75"
+                    className="text-xs opacity-75 truncate"
                     style={{ color: theme?.text || '#6b7280' }}
+                    title={`${conversation.provider} • ${conversation.model}`}
                   >
-                    {conversation.provider} • {conversation.model}
+                    {conversation.provider} • {truncateModel(conversation.model)}
                   </div>
                 </div>
               </div>
-              <div className="text-xs opacity-75 ml-2" style={{ color: theme?.text || '#6b7280' }}>
-                {formatDate(conversation.updatedAt)}
+              <div className="text-xs opacity-75 ml-2 text-right" style={{ color: theme?.text || '#6b7280' }}>
+                <div className="font-medium">{formatDate(conversation.updatedAt)}</div>
+                <div className="opacity-60">{conversation.totalTokens || 0} tokens</div>
               </div>
             </div>
             
             <div className="flex items-center justify-between text-xs opacity-75" style={{ color: theme?.text || '#6b7280' }}>
-              <span>{conversation.totalMessages} messages</span>
-              <span>{conversation.totalTokens} tokens</span>
+              <div className="flex items-center space-x-4">
+                <span className="flex items-center">
+                  <span className="mr-1">💬</span>
+                  {conversation.totalMessages} messages
+                </span>
+                <span className="flex items-center">
+                  <span className="mr-1">⚡</span>
+                  {conversation.totalTokens || 0} tokens
+                </span>
+              </div>
+              <div className="opacity-60 group-hover:opacity-100 transition-opacity duration-200">
+                Click to open →
+              </div>
             </div>
           </div>
         ))}

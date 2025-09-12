@@ -547,7 +547,7 @@ export default function ChatBoxMcp() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-6" style={{ background: colors.main }}>
-          <div className="max-w-full md:max-w-3xl mx-auto space-y-3 md:space-y-4">
+          <div className="max-w-full md:max-w-3xl mx-auto space-y-3 md:space-y-4 pb-32">
             {messages.length === 0 && (
               <div className="flex items-center justify-center h-full min-h-[300px] md:min-h-[500px]">
                 <div className="text-center px-4">
@@ -901,33 +901,14 @@ export default function ChatBoxMcp() {
       
       {/* Chat List Modal */}
       {showChatList && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in-scale">
           <div
-            className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+            className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col animate-slide-in-up"
             style={{
               backgroundColor: colors.main || '#ffffff',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
             }}
           >
-            <div
-              className="flex items-center justify-between p-4 border-b"
-              style={{ borderColor: colors.border || '#e5e7eb' }}
-            >
-              <h2
-                className="text-lg font-bold flex items-center"
-                style={{ color: colors.text || '#1f2937' }}
-              >
-                <span className="mr-2 text-xl" style={{ color: colors.accent || '#ff9800' }}>💬</span>
-                Chat History
-              </h2>
-              <button
-                onClick={() => setShowChatList(false)}
-                className="text-xl transition-all duration-200 hover:scale-110 hover:rotate-90"
-                style={{ color: colors.text || '#6b7280' }}
-              >
-                ×
-              </button>
-            </div>
             <div className="flex-1 overflow-hidden">
               <ChatList 
                 onConversationSelect={(conversation) => {
@@ -935,6 +916,7 @@ export default function ChatBoxMcp() {
                   setShowChatList(false);
                 }}
                 theme={colors}
+                onClose={() => setShowChatList(false)}
               />
             </div>
           </div>
@@ -1115,6 +1097,60 @@ export default function ChatBoxMcp() {
             /* Account for mobile keyboards */
             max-height: calc(100vh - 140px);
           }
+        }
+
+        /* Modern animations for chat history */
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
+        .animate-slide-in-up {
+          animation: slideInUp 0.3s ease-out forwards;
+        }
+
+        .animate-fade-in-scale {
+          animation: fadeInScale 0.2s ease-out forwards;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse 2s infinite;
+        }
+
+        /* Hover effects for modern feel */
+        .hover-lift {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
       `}</style>
     </div>

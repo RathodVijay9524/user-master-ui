@@ -39,9 +39,18 @@ export const fetchConversationMessages = createAsyncThunk(
   'chatList/fetchConversationMessages',
   async ({ userId, conversationId }, { rejectWithValue }) => {
     try {
+      console.log('🔄 chatListSlice.fetchConversationMessages - Starting request:', { userId, conversationId });
       const response = await chatApi.getConversationMessages(userId, conversationId);
+      console.log('✅ chatListSlice.fetchConversationMessages - Success response:', response);
       return response;
     } catch (error) {
+      console.error('❌ chatListSlice.fetchConversationMessages - Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url
+      });
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch conversation messages');
     }
   }

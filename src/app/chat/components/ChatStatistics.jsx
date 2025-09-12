@@ -51,7 +51,7 @@ const ChatStatistics = ({ theme }) => {
           }}
           className="mt-3 px-3 py-1 text-xs rounded hover:opacity-80 transition-all duration-200"
           style={{
-            backgroundColor: colors.accent || '#ff9800',
+            backgroundColor: theme?.accent || '#ff9800',
             color: '#ffffff'
           }}
         >
@@ -132,7 +132,7 @@ const ChatStatistics = ({ theme }) => {
       {/* Additional Info */}
       <div className="p-3 rounded-lg" style={{ backgroundColor: theme?.bubble || '#f8fafc' }}>
         <div className="text-xs opacity-75 text-center" style={{ color: theme?.text || '#6b7280' }}>
-          User ID: {chatStats.userId}
+          User ID: {user?.id || user?.userId || 'N/A'}
         </div>
       </div>
     </div>
