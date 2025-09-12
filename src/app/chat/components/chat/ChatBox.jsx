@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
 import { setProvider } from "../../../../redux/chat/settingsSlice";
+import { getUserImage } from "../../../../redux/userSlice";
+import axiosInstance from "../../../../redux/axiosInstance";
 import SettingsModal from "../SettingsModal";
 import UserProfileIntegration from "../UserProfileIntegration";
 import ChatList from "../ChatList";
@@ -71,6 +73,10 @@ export default function ChatBoxMcp() {
   const [playingId, setPlayingId] = useState(null);
   const [progress, setProgress] = useState({});
 
+  // User image state
+  const [userImageUrl, setUserImageUrl] = useState('');
+  const [imageError, setImageError] = useState(false);
+
   const { messages, isLoading: loading, error } = useSelector((state) => state.chat);
   const { user, token } = useSelector((state) => state.auth);
   const { provider, model, apiKey, baseUrl, temperature, maxTokens } = useSelector((state) => {
@@ -102,6 +108,31 @@ export default function ChatBoxMcp() {
   useEffect(() => {
     localStorage.setItem("chatTheme", theme);
   }, [theme]);
+
+  // Fetch user image
+  useEffect(() => {
+    const fetchUserImage = async () => {
+      if (!user?.id) return;
+      setImageError(false);
+      try {
+        const result = await dispatch(getUserImage(user.id)).unwrap();
+        if (result) {
+          const imageUrl = `${axiosInstance.defaults.baseURL}/users/image/${user.id}?t=${Date.now()}`;
+          setUserImageUrl(imageUrl);
+        } else {
+          setUserImageUrl('');
+        }
+      } catch (error) {
+        console.warn('Failed to load user image:', error);
+        setUserImageUrl('');
+        setImageError(true);
+      }
+    };
+
+    if (user?.id) {
+      fetchUserImage();
+    }
+  }, [user, dispatch]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -621,11 +652,21 @@ export default function ChatBoxMcp() {
                   </div>
                     </div>
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden flex-shrink-0">
-                      <img
-                        src="https://i.pravatar.cc/40?img=3"
-                        alt="user"
-                        className="w-full h-full object-cover rounded-full"
-                      />
+                      {userImageUrl && !imageError ? (
+                        <img
+                          src={userImageUrl}
+                          alt="User Avatar"
+                          className="w-full h-full object-cover rounded-full"
+                          onError={() => setImageError(true)}
+                        />
+                      ) : (
+                        <div 
+                          className="w-full h-full rounded-full flex items-center justify-center text-white text-lg font-bold"
+                          style={{ backgroundColor: colors.userBubble }}
+                        >
+                          {user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -653,7 +694,7 @@ export default function ChatBoxMcp() {
                             : `0 2px 8px rgba(0, 0, 0, 0.1)`,
                         }}
                       >
-                        {typeof msg.text === "object" && msg.text.type === "voice" ? (
+                        {typeof msg.text === "object" && msg.text && msg.text.type === "voice" ? (
                           <div className="flex items-center space-x-3 w-64 relative">
                             <button
                               onClick={() => {

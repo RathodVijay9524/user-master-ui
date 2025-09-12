@@ -36,6 +36,7 @@ export const sendMessage = createAsyncThunk(
       const userId = state.auth.user?.id || state.auth.user?.userId;
       
       // Map the generic apiKey to the specific provider API key field
+      // Only send API key if it's not empty/null to avoid conflicts with backend defaults
       const messageRequest = {
         message: request.message,
         provider: request.provider,
@@ -44,15 +45,15 @@ export const sendMessage = createAsyncThunk(
         maxTokens: request.maxTokens,
         conversationId,
         userId, // Add userId for session management
-        // Map API key to the correct provider field
-        [`${request.provider}ApiKey`]: request.apiKey,
+        // Map API key to the correct provider field (only if not empty)
+        [`${request.provider}ApiKey`]: request.apiKey && request.apiKey.trim() ? request.apiKey : null,
         // Set all other API key fields to null
-        openaiApiKey: request.provider === 'openai' ? request.apiKey : null,
-        claudeApiKey: request.provider === 'claude' ? request.apiKey : null,
-        groqApiKey: request.provider === 'groq' ? request.apiKey : null,
-        geminiApiKey: request.provider === 'gemini' ? request.apiKey : null,
-        openrouterApiKey: request.provider === 'openrouter' ? request.apiKey : null,
-        huggingfaceApiKey: request.provider === 'huggingface' ? request.apiKey : null,
+        openaiApiKey: request.provider === 'openai' && request.apiKey && request.apiKey.trim() ? request.apiKey : null,
+        claudeApiKey: request.provider === 'claude' && request.apiKey && request.apiKey.trim() ? request.apiKey : null,
+        groqApiKey: request.provider === 'groq' && request.apiKey && request.apiKey.trim() ? request.apiKey : null,
+        geminiApiKey: request.provider === 'gemini' && request.apiKey && request.apiKey.trim() ? request.apiKey : null,
+        openrouterApiKey: request.provider === 'openrouter' && request.apiKey && request.apiKey.trim() ? request.apiKey : null,
+        huggingfaceApiKey: request.provider === 'huggingface' && request.apiKey && request.apiKey.trim() ? request.apiKey : null,
       };
 
       // Debug logging
@@ -62,11 +63,11 @@ export const sendMessage = createAsyncThunk(
         userFromAuth: state.auth.user,
         conversationId: conversationId
       });
-      console.log('sendMessage - API Key mapping:', {
+      console.log('sendMessage - API Key debug:', {
         provider: request.provider,
-        apiKey: request.apiKey,
+        apiKey: request.apiKey ? `${request.apiKey.substring(0, 8)}...` : 'null/empty',
         mappedKey: `${request.provider}ApiKey`,
-        mappedValue: messageRequest[`${request.provider}ApiKey`]
+        mappedValue: messageRequest[`${request.provider}ApiKey`] ? `${messageRequest[`${request.provider}ApiKey`].substring(0, 8)}...` : 'null/empty'
       });
 
       const response = await chatApi.sendMessage(messageRequest);

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setProvider, setModel, setApiKey, setBaseUrl, setTemperature, setMaxTokens, clearSettings, fetchProviders, fetchModelsForProvider, setModelForProvider, setApiKeyForProvider, setBaseUrlForProvider } from "../../../redux/chat/settingsSlice";
+import { setProvider, setModel, setApiKey, setBaseUrl, setTemperature, setMaxTokens, clearSettings, fetchProviders, fetchModelsForProvider, setModelForProvider, setApiKeyForProvider, setBaseUrlForProvider, setProviderApiKey, setProviderBaseUrl, setProviderModel, setProviderTemperature, setProviderMaxTokens } from "../../../redux/chat/settingsSlice";
 import { useAppDispatch } from "../../../redux/chat/hooks";
 
 export default function SettingsModal({ onClose, theme }) {
@@ -24,7 +24,7 @@ export default function SettingsModal({ onClose, theme }) {
 
   const { selectedProvider, model, apiKey, baseUrl, availableModels, availableProviders, temperature, maxTokens, displayName, description, isAvailable, status, isLoading, error } = useSelector((state) => {
     const provider = state.settings.selectedProvider;
-    return {
+    const result = {
       selectedProvider: provider,
       model: state.settings.providers[provider]?.model || '',
       apiKey: state.settings.providers[provider]?.apiKey || '',
@@ -40,6 +40,13 @@ export default function SettingsModal({ onClose, theme }) {
       isLoading: state.settings.isLoading,
       error: state.settings.error,
     };
+    
+    // Debug logging
+    console.log(`SettingsModal - Provider: ${provider}, Available Models:`, result.availableModels, 'Type:', typeof result.availableModels);
+    console.log(`SettingsModal - API Key:`, result.apiKey ? `${result.apiKey.substring(0, 8)}...` : 'empty');
+    console.log(`SettingsModal - Model:`, result.model);
+    
+    return result;
   });
 
   // Fetch providers and models from backend on component mount
@@ -47,12 +54,39 @@ export default function SettingsModal({ onClose, theme }) {
     dispatch(fetchProviders());
   }, [dispatch]);
 
-  // Fetch models when provider changes
+
+  // Fetch models when provider changes - with proper dependency management
   useEffect(() => {
-    if (selectedProvider) {
+    if (selectedProvider && selectedProvider !== 'ollama') {
+      console.log(`🔍 Fetching models for provider: ${selectedProvider}`);
       dispatch(fetchModelsForProvider(selectedProvider));
     }
   }, [selectedProvider, dispatch]);
+
+  // Also fetch models when availableModels is empty for the current provider
+  useEffect(() => {
+    if (selectedProvider && (!availableModels || availableModels.length === 0) && selectedProvider !== 'ollama') {
+      console.log(`🔍 No models available for ${selectedProvider}, fetching...`);
+      dispatch(fetchModelsForProvider(selectedProvider));
+    }
+  }, [selectedProvider, availableModels, dispatch]);
+
+  // Retry mechanism for model fetching
+  useEffect(() => {
+    if (selectedProvider && selectedProvider !== 'ollama') {
+      const retryFetch = () => {
+        if (!availableModels || availableModels.length === 0) {
+          console.log(`🔄 Retrying model fetch for ${selectedProvider}...`);
+          dispatch(fetchModelsForProvider(selectedProvider));
+        }
+      };
+      
+      // Retry after 2 seconds if models are still empty
+      const timeoutId = setTimeout(retryFetch, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [selectedProvider, availableModels, dispatch]);
+
 
   // Load settings from localStorage on component mount
   useEffect(() => {
@@ -75,19 +109,33 @@ export default function SettingsModal({ onClose, theme }) {
               console.log(`Loading settings for provider: ${provider}`, providerSettings);
 
               if (providerSettings.apiKey) {
-                dispatch(setApiKeyForProvider({ provider, apiKey: providerSettings.apiKey }));
+                dispatch(setProviderApiKey({ provider, apiKey: providerSettings.apiKey }));
               }
               if (providerSettings.baseUrl) {
-                dispatch(setBaseUrlForProvider({ provider, baseUrl: providerSettings.baseUrl }));
+                dispatch(setProviderBaseUrl({ provider, baseUrl: providerSettings.baseUrl }));
               }
               if (providerSettings.model) {
-                dispatch(setModelForProvider({ provider, model: providerSettings.model }));
+                console.log(`Loading model for ${provider}:`, providerSettings.model, 'Type:', typeof providerSettings.model);
+                // Fix: Only set model if it's a string, not an array
+                if (typeof providerSettings.model === 'string') {
+                  dispatch(setProviderModel({ provider, model: providerSettings.model }));
+                } else {
+                  console.warn(`Skipping corrupted model data for ${provider}:`, providerSettings.model);
+                }
+              }
+              if (providerSettings.temperature !== undefined) {
+                dispatch(setProviderTemperature({ provider, temperature: providerSettings.temperature }));
+              }
+              if (providerSettings.maxTokens !== undefined) {
+                dispatch(setProviderMaxTokens({ provider, maxTokens: providerSettings.maxTokens }));
               }
             }
           });
         }
       } catch (error) {
         console.error('Error loading settings from localStorage:', error);
+        // Clear corrupted localStorage
+        localStorage.removeItem('neural-chat-settings');
       }
     };
 
@@ -104,6 +152,8 @@ export default function SettingsModal({ onClose, theme }) {
             model,
             apiKey,
             baseUrl,
+            temperature,
+            maxTokens,
             availableModels
           }
         };
@@ -118,6 +168,8 @@ export default function SettingsModal({ onClose, theme }) {
           model,
           apiKey,
           baseUrl,
+          temperature,
+          maxTokens,
           availableModels
         };
 
@@ -131,12 +183,24 @@ export default function SettingsModal({ onClose, theme }) {
     if (selectedProvider) {
       saveSettings();
     }
-  }, [selectedProvider, model, apiKey, baseUrl, availableModels]);
+  }, [selectedProvider, model, apiKey, baseUrl, temperature, maxTokens, availableModels]);
 
   useEffect(() => {
-    if (!availableModels || availableModels.length === 0) return;
-    if (!model || !availableModels.includes(model)) {
-      dispatch(setModel(availableModels[0]));
+    // Handle case where availableModels might be a string
+    let models = availableModels;
+    if (typeof models === 'string') {
+      try {
+        models = JSON.parse(models);
+      } catch (e) {
+        models = [];
+      }
+    }
+    
+    if (!models || !Array.isArray(models) || models.length === 0) return;
+    console.log(`Auto-selection check - Current model:`, model, 'Type:', typeof model, 'Models:', models);
+    if (!model || !models.includes(model)) {
+      console.log(`Auto-selecting first model: ${models[0]} for provider: ${selectedProvider}`);
+      dispatch(setModel(models[0]));
     }
   }, [selectedProvider, availableModels, dispatch, model]);
 
@@ -415,20 +479,61 @@ export default function SettingsModal({ onClose, theme }) {
                     color: currentTheme.text, 
                     borderColor: currentTheme.border 
                   }}
+                  disabled={isLoadingModels}
                 >
-                  {availableModels.length > 0 ? (
-                    availableModels.map((modelOption) => (
-                      <option key={modelOption} value={modelOption}>
-                        {modelOption}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">No models available</option>
-                  )}
+                  {isLoadingModels ? (
+                    <option value="">Loading models...</option>
+                  ) : (() => {
+                    // Handle case where availableModels might be a string or array
+                    let models = availableModels;
+                    if (typeof models === 'string') {
+                      try {
+                        models = JSON.parse(models);
+                      } catch (e) {
+                        models = [];
+                      }
+                    }
+                    
+                    // Also handle case where availableModels is an array containing a string
+                    if (Array.isArray(availableModels) && availableModels.length === 1 && typeof availableModels[0] === 'string') {
+                      try {
+                        const parsed = JSON.parse(availableModels[0]);
+                        if (Array.isArray(parsed)) {
+                          models = parsed;
+                        }
+                      } catch (e) {
+                        // Silent fail
+                      }
+                    }
+                    
+                    
+                    return Array.isArray(models) && models.length > 0 ? (
+                      models.map((modelOption) => (
+                        <option key={modelOption} value={modelOption}>
+                          {modelOption}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No models available</option>
+                    );
+                  })()}
                 </select>
-                <p className="text-xs opacity-60 mt-1" style={{ color: currentTheme.text }}>
-                  Select a model for your AI provider
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs opacity-60" style={{ color: currentTheme.text }}>
+                    Select a model for your AI provider
+                  </p>
+                  {selectedProvider !== 'ollama' && (
+                    <button
+                      onClick={() => {
+                        console.log(`🔄 Manual refresh for ${selectedProvider}`);
+                        dispatch(fetchModelsForProvider(selectedProvider));
+                      }}
+                      className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors duration-200"
+                    >
+                      🔄 Refresh
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Temperature Setting */}
@@ -506,6 +611,34 @@ export default function SettingsModal({ onClose, theme }) {
                         </span>
                       </button>
                     </div>
+                    {/* Save API Key Button */}
+                    <button
+                      onClick={() => {
+                        // Force save the current API key to localStorage
+                        try {
+                          const existingSettings = localStorage.getItem('neural-chat-settings');
+                          let settings = existingSettings ? JSON.parse(existingSettings) : {};
+                          
+                          if (!settings[selectedProvider]) {
+                            settings[selectedProvider] = {};
+                          }
+                          
+                          settings[selectedProvider].apiKey = apiKey;
+                          localStorage.setItem('neural-chat-settings', JSON.stringify(settings));
+                          
+                          console.log(`API key manually saved for ${selectedProvider}:`, apiKey ? `${apiKey.substring(0, 8)}...` : 'empty');
+                          
+                          // Close the modal instead of showing alert
+                          onClose();
+                        } catch (error) {
+                          console.error('Error saving API key:', error);
+                          alert('Error saving API key!');
+                        }
+                      }}
+                      className="w-full mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+                    >
+                      💾 Save API Key
+                    </button>
                   </div>
                 </>
               )}

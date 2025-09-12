@@ -148,8 +148,10 @@ const settingsSlice = createSlice({
     },
     setModel: (state, action) => {
       const provider = state.selectedProvider;
+      console.log(`setModel called for provider: ${provider}, payload:`, action.payload, 'Type:', typeof action.payload);
       if (state.providers[provider]) {
         state.providers[provider].model = action.payload;
+        console.log(`Model set for ${provider}:`, state.providers[provider].model);
       }
     },
     setModelForProvider: (state, action) => {
@@ -172,6 +174,39 @@ const settingsSlice = createSlice({
       if (state.providers[provider]) {
         state.providers[provider].apiKey = apiKey;
         console.log(`API key set for ${provider}:`, state.providers[provider].apiKey ? `${state.providers[provider].apiKey.substring(0, 8)}...` : 'null');
+      }
+    },
+    // Actions for setting values for specific providers (used when loading from localStorage)
+    setProviderApiKey: (state, action) => {
+      const { provider, apiKey } = action.payload;
+      if (state.providers[provider]) {
+        state.providers[provider].apiKey = apiKey;
+      }
+    },
+    setProviderBaseUrl: (state, action) => {
+      const { provider, baseUrl } = action.payload;
+      if (state.providers[provider]) {
+        state.providers[provider].baseUrl = baseUrl;
+      }
+    },
+    setProviderModel: (state, action) => {
+      const { provider, model } = action.payload;
+      console.log(`setProviderModel called for provider: ${provider}, model:`, model, 'Type:', typeof model);
+      if (state.providers[provider]) {
+        state.providers[provider].model = model;
+        console.log(`Provider model set for ${provider}:`, state.providers[provider].model);
+      }
+    },
+    setProviderTemperature: (state, action) => {
+      const { provider, temperature } = action.payload;
+      if (state.providers[provider]) {
+        state.providers[provider].temperature = temperature;
+      }
+    },
+    setProviderMaxTokens: (state, action) => {
+      const { provider, maxTokens } = action.payload;
+      if (state.providers[provider]) {
+        state.providers[provider].maxTokens = maxTokens;
       }
     },
     setBaseUrl: (state, action) => {
@@ -239,8 +274,22 @@ const settingsSlice = createSlice({
       // Fetch models for provider
       .addCase(fetchModelsForProvider.fulfilled, (state, action) => {
         const { providerName, models } = action.payload;
+        console.log('fetchModelsForProvider.fulfilled - Provider:', providerName, 'Models:', models, 'Type:', typeof models);
+        
         if (state.providers[providerName]) {
-          state.providers[providerName].availableModels = models;
+          // Handle case where models might be a string representation of an array
+          let processedModels = models;
+          if (typeof models === 'string') {
+            try {
+              processedModels = JSON.parse(models);
+            } catch (e) {
+              console.error('Failed to parse models string:', e);
+              processedModels = [];
+            }
+          }
+          
+          state.providers[providerName].availableModels = Array.isArray(processedModels) ? processedModels : [];
+          console.log('Processed models for', providerName, ':', state.providers[providerName].availableModels);
         }
       })
       .addCase(fetchModelsForProvider.rejected, (state, action) => {
@@ -259,6 +308,11 @@ export const {
   clearSettings,
   setModelForProvider,
   setApiKeyForProvider,
-  setBaseUrlForProvider
+  setBaseUrlForProvider,
+  setProviderApiKey,
+  setProviderBaseUrl,
+  setProviderModel,
+  setProviderTemperature,
+  setProviderMaxTokens
 } = settingsSlice.actions;
 export default settingsSlice.reducer;
