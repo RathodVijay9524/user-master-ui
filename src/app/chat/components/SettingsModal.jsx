@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setProvider, setModel, setApiKey, setBaseUrl, setTemperature, setMaxTokens, clearSettings, fetchProviders, fetchModelsForProvider } from "../../../redux/chat/settingsSlice";
+import { setProvider, setModel, setApiKey, setBaseUrl, setTemperature, setMaxTokens, clearSettings, fetchProviders, fetchModelsForProvider, setModelForProvider, setApiKeyForProvider, setBaseUrlForProvider } from "../../../redux/chat/settingsSlice";
 import { useAppDispatch } from "../../../redux/chat/hooks";
 
 export default function SettingsModal({ onClose, theme }) {
@@ -71,15 +71,17 @@ export default function SettingsModal({ onClose, theme }) {
           Object.keys(settings).forEach(provider => {
             if (provider !== 'selectedProvider' && typeof settings[provider] === 'object') {
               const providerSettings = settings[provider];
+              
+              console.log(`Loading settings for provider: ${provider}`, providerSettings);
 
               if (providerSettings.apiKey) {
-                dispatch(setApiKey(providerSettings.apiKey));
+                dispatch(setApiKeyForProvider({ provider, apiKey: providerSettings.apiKey }));
               }
               if (providerSettings.baseUrl) {
-                dispatch(setBaseUrl(providerSettings.baseUrl));
+                dispatch(setBaseUrlForProvider({ provider, baseUrl: providerSettings.baseUrl }));
               }
               if (providerSettings.model) {
-                dispatch(setModel(providerSettings.model));
+                dispatch(setModelForProvider({ provider, model: providerSettings.model }));
               }
             }
           });

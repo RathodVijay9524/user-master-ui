@@ -32,13 +32,33 @@ export const sendMessage = createAsyncThunk(
       const state = getState();
       const conversationId = request.conversationId || state.chat.currentConversationId;
       
+      // Map the generic apiKey to the specific provider API key field
       const messageRequest = {
-        ...request,
+        message: request.message,
+        provider: request.provider,
+        model: request.model,
+        temperature: request.temperature,
+        maxTokens: request.maxTokens,
         conversationId,
+        // Map API key to the correct provider field
+        [`${request.provider}ApiKey`]: request.apiKey,
+        // Set all other API key fields to null
+        openaiApiKey: request.provider === 'openai' ? request.apiKey : null,
+        claudeApiKey: request.provider === 'claude' ? request.apiKey : null,
+        groqApiKey: request.provider === 'groq' ? request.apiKey : null,
+        geminiApiKey: request.provider === 'gemini' ? request.apiKey : null,
+        openrouterApiKey: request.provider === 'openrouter' ? request.apiKey : null,
+        huggingfaceApiKey: request.provider === 'huggingface' ? request.apiKey : null,
       };
 
       // Debug logging
       console.log('sendMessage - Request being sent to backend:', messageRequest);
+      console.log('sendMessage - API Key mapping:', {
+        provider: request.provider,
+        apiKey: request.apiKey,
+        mappedKey: `${request.provider}ApiKey`,
+        mappedValue: messageRequest[`${request.provider}ApiKey`]
+      });
 
       const response = await chatApi.sendMessage(messageRequest);
       

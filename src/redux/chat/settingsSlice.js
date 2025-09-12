@@ -152,16 +152,38 @@ const settingsSlice = createSlice({
         state.providers[provider].model = action.payload;
       }
     },
+    setModelForProvider: (state, action) => {
+      const { provider, model } = action.payload;
+      if (state.providers[provider]) {
+        state.providers[provider].model = model;
+      }
+    },
     setApiKey: (state, action) => {
       const provider = state.selectedProvider;
+      console.log(`setApiKey called for selected provider: ${provider}`, { apiKey: action.payload ? `${action.payload.substring(0, 8)}...` : 'null' });
       if (state.providers[provider]) {
         state.providers[provider].apiKey = action.payload;
+        console.log(`API key set for selected provider ${provider}:`, state.providers[provider].apiKey ? `${state.providers[provider].apiKey.substring(0, 8)}...` : 'null');
+      }
+    },
+    setApiKeyForProvider: (state, action) => {
+      const { provider, apiKey } = action.payload;
+      console.log(`Setting API key for provider: ${provider}`, { apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'null' });
+      if (state.providers[provider]) {
+        state.providers[provider].apiKey = apiKey;
+        console.log(`API key set for ${provider}:`, state.providers[provider].apiKey ? `${state.providers[provider].apiKey.substring(0, 8)}...` : 'null');
       }
     },
     setBaseUrl: (state, action) => {
       const provider = state.selectedProvider;
       if (state.providers[provider]) {
         state.providers[provider].baseUrl = action.payload;
+      }
+    },
+    setBaseUrlForProvider: (state, action) => {
+      const { provider, baseUrl } = action.payload;
+      if (state.providers[provider]) {
+        state.providers[provider].baseUrl = baseUrl;
       }
     },
     setTemperature: (state, action) => {
@@ -227,5 +249,16 @@ const settingsSlice = createSlice({
   },
 });
 
-export const { setProvider, setModel, setApiKey, setBaseUrl, setTemperature, setMaxTokens, clearSettings } = settingsSlice.actions;
+export const { 
+  setProvider, 
+  setModel, 
+  setApiKey, 
+  setBaseUrl, 
+  setTemperature, 
+  setMaxTokens, 
+  clearSettings,
+  setModelForProvider,
+  setApiKeyForProvider,
+  setBaseUrlForProvider
+} = settingsSlice.actions;
 export default settingsSlice.reducer;

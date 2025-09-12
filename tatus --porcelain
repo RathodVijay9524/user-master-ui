@@ -1,0 +1,10 @@
+warning: in the working copy of 'src/app/chat/components/SettingsModal.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/chat/components/chat/ChatBox.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/redux/axiosInstance.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/redux/chat/chatSlice.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/redux/chat/settingsSlice.js', LF will be replaced by CRLF the next time Git touches it
+src/app/chat/components/SettingsModal.jsx
+src/app/chat/components/chat/ChatBox.jsx
+src/redux/axiosInstance.js
+src/redux/chat/chatSlice.js
+src/redux/chat/settingsSlice.js

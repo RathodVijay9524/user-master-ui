@@ -168,6 +168,12 @@ export default function ChatBoxMcp() {
     
     // Debug logging
     console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
+    console.log('API Key details:', {
+      provider,
+      apiKey,
+      apiKeyLength: apiKey ? apiKey.length : 0,
+      apiKeyPreview: apiKey ? `${apiKey.substring(0, 8)}...` : 'null'
+    });
     
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
