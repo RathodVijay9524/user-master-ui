@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
 import { setProvider } from "../../../../redux/chat/settingsSlice";
 import SettingsModal from "../SettingsModal";
+import UserProfileIntegration from "../UserProfileIntegration";
 
 const themes = {
   dark: {
@@ -54,6 +55,7 @@ export default function ChatBoxMcp() {
 
   const [input, setInput] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -64,6 +66,7 @@ export default function ChatBoxMcp() {
   const [progress, setProgress] = useState({});
 
   const { messages, isLoading: loading, error } = useSelector((state) => state.chat);
+  const { user, token } = useSelector((state) => state.auth);
   const { provider, model, apiKey, baseUrl, temperature, maxTokens } = useSelector((state) => {
     const selectedProvider = state.settings.selectedProvider;
     const providerSettings = state.settings.providers[selectedProvider] || {};
@@ -71,6 +74,7 @@ export default function ChatBoxMcp() {
     // Debug logging
     console.log('ChatBox - Selected Provider:', selectedProvider);
     console.log('ChatBox - Provider Settings:', providerSettings);
+    console.log('ChatBox - User Auth:', { user: user?.id || user?.userId, token: token ? 'present' : 'missing' });
     
     return { 
       provider: selectedProvider,
@@ -163,6 +167,12 @@ export default function ChatBoxMcp() {
     
     if (!input.trim()) {
       console.log('❌ Cannot send empty message');
+      return;
+    }
+    
+    if (!user || !token) {
+      console.log('❌ User not authenticated');
+      alert('Please login to use the chat feature');
       return;
     }
     
@@ -282,7 +292,8 @@ export default function ChatBoxMcp() {
           </button>
         )}
 
-        <div className="mt-auto flex flex-col space-y-3">
+        {/* Provider Selector */}
+        <div className="mt-auto">
           {(!sidebarCollapsed || mobileSidebarOpen) && (
             <select
               value={provider}
@@ -299,32 +310,60 @@ export default function ChatBoxMcp() {
               <option value="openrouter">🌐 OpenRouter</option>
             </select>
           )}
-          <button 
-            onClick={() => {
-              setShowSettings(true);
-              setMobileSidebarOpen(false);
-            }}
-            title={sidebarCollapsed && !mobileSidebarOpen ? "Settings" : "Settings"}
-            className={`px-3 py-2 text-sm rounded theme-hover w-full ${
-              sidebarCollapsed && !mobileSidebarOpen ? 'px-2' : ''
-            }`}
-            style={{
-              backgroundColor: colors.border,
-              color: colors.text,
-              border: `1px solid ${colors.border}`
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = colors.text;
-              e.target.style.color = colors.main;
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = colors.border;
-              e.target.style.color = colors.text;
-            }}
-          >
-            {sidebarCollapsed && !mobileSidebarOpen ? '⚙️' : '⚙️ Settings'}
-          </button>
         </div>
+        
+        {/* Mobile-only Profile and Settings */}
+        <div className="lg:hidden mt-3 flex flex-col space-y-3">
+            {/* User Profile Button - Mobile Only */}
+            <button 
+              onClick={() => {
+                setShowUserProfile(true);
+                setMobileSidebarOpen(false);
+              }}
+              title="User Profile"
+              className="px-3 py-2 text-sm rounded theme-hover w-full"
+              style={{
+                backgroundColor: colors.border,
+                color: colors.text,
+                border: `1px solid ${colors.border}`
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = colors.text;
+                e.target.style.color = colors.main;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = colors.border;
+                e.target.style.color = colors.text;
+              }}
+            >
+              👤 Profile
+            </button>
+            
+            {/* Settings Button - Mobile Only */}
+            <button 
+              onClick={() => {
+                setShowSettings(true);
+                setMobileSidebarOpen(false);
+              }}
+              title="Settings"
+              className="px-3 py-2 text-sm rounded theme-hover w-full"
+              style={{
+                backgroundColor: colors.border,
+                color: colors.text,
+                border: `1px solid ${colors.border}`
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = colors.text;
+                e.target.style.color = colors.main;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = colors.border;
+                e.target.style.color = colors.text;
+              }}
+            >
+              ⚙️ Settings
+            </button>
+          </div>
       </aside>
 
       {/* Main */}
@@ -355,6 +394,14 @@ export default function ChatBoxMcp() {
           </div>
           
           <div className="flex items-center space-x-1 md:space-x-3 flex-shrink-0">
+            {/* Notifications */}
+            <div className="relative">
+              <button className="px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-600 relative">
+                🔔
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">2</span>
+              </button>
+            </div>
+            
             <button
               onClick={() => {
                 const next = theme === "dark" ? "green" : theme === "green" ? "light" : "dark";
@@ -384,9 +431,29 @@ export default function ChatBoxMcp() {
             >
               🏠
             </Link>
+            {/* User Avatar Button - Desktop Only */}
+            <button 
+              onClick={() => setShowUserProfile(true)} 
+              className="text-sm md:text-lg p-1 md:p-2 rounded-lg theme-hover hidden lg:block"
+              style={{
+                color: colors.text,
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = colors.border;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+              title="User Profile"
+            >
+              👤
+            </button>
+            
+            {/* Settings Button - Desktop Only */}
             <button 
               onClick={() => setShowSettings(true)} 
-              className="text-sm md:text-lg p-1 md:p-2 rounded-lg theme-hover hidden md:block"
+              className="text-sm md:text-lg p-1 md:p-2 rounded-lg theme-hover hidden lg:block"
               style={{
                 color: colors.text,
                 backgroundColor: 'transparent'
@@ -746,6 +813,7 @@ export default function ChatBoxMcp() {
       </main>
 
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} theme={colors} />}
+      {showUserProfile && <UserProfileIntegration onClose={() => setShowUserProfile(false)} theme={colors} />}
 
       <style>{`
         @keyframes wave {

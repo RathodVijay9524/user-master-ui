@@ -32,6 +32,9 @@ export const sendMessage = createAsyncThunk(
       const state = getState();
       const conversationId = request.conversationId || state.chat.currentConversationId;
       
+      // Get user ID from auth state
+      const userId = state.auth.user?.id || state.auth.user?.userId;
+      
       // Map the generic apiKey to the specific provider API key field
       const messageRequest = {
         message: request.message,
@@ -40,6 +43,7 @@ export const sendMessage = createAsyncThunk(
         temperature: request.temperature,
         maxTokens: request.maxTokens,
         conversationId,
+        userId, // Add userId for session management
         // Map API key to the correct provider field
         [`${request.provider}ApiKey`]: request.apiKey,
         // Set all other API key fields to null
@@ -53,6 +57,11 @@ export const sendMessage = createAsyncThunk(
 
       // Debug logging
       console.log('sendMessage - Request being sent to backend:', messageRequest);
+      console.log('sendMessage - User session info:', {
+        userId: userId,
+        userFromAuth: state.auth.user,
+        conversationId: conversationId
+      });
       console.log('sendMessage - API Key mapping:', {
         provider: request.provider,
         apiKey: request.apiKey,

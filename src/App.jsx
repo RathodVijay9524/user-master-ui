@@ -31,6 +31,7 @@ import NotFoundPage from './components/public/NotFoundPage ';
 import VerifyAccount from './components/public/pages/VerifyAccount';
 import ChatPage from './app/chat/components/ChatPage';
 import PortfolioPage from './app/portfolio/components/PortfolioPage';
+import ChatAccessGuard from './components/chat/ChatAccessGuard';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -199,15 +200,13 @@ if (loading) {
         }
       />
       
-        {/* Chat Route */}
+        {/* Chat Route - Protected with comprehensive access control */}
         <Route
           path="/chat"
           element={
-            <>
-             
+            <ChatAccessGuard>
               <ChatPage />
-            
-            </>
+            </ChatAccessGuard>
           }
         />
 

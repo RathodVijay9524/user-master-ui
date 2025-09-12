@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   FaTools,
   FaLaptopCode,
@@ -23,6 +24,8 @@ import {
 import './Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const { user, token } = useSelector((state) => state.auth);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [typingText, setTypingText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -138,6 +141,27 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [testimonials.length]);
 
+  // Handle chat access - redirect to login if not authenticated
+  const handleChatAccess = () => {
+    if (!user || !token) {
+      // User not logged in - redirect to login with chat redirect flag
+      sessionStorage.setItem('redirectToChat', 'true');
+      navigate('/login');
+    } else {
+      // User is logged in - check if they have chat access
+      const userRoles = user.roles?.map(role => role.name) || [];
+      const hasChatAccess = userRoles.some(role => 
+        ['ROLE_NORMAL', 'ROLE_ADMIN', 'ROLE_WORKER'].includes(role)
+      );
+      
+      if (hasChatAccess) {
+        navigate('/chat');
+      } else {
+        alert('You do not have permission to access the chat feature. Please contact an administrator.');
+      }
+    }
+  };
+
   return (
     <div className="home-container">
       {/* Hero Section */}
@@ -182,10 +206,10 @@ const Home = () => {
               <span className="btn-icon">🔐</span>
               <span className="btn-text">Login</span>
             </Link>
-            <Link to="/chat" className="hero-btn chat-btn">
+            <button onClick={handleChatAccess} className="hero-btn chat-btn">
               <span className="btn-icon">💬</span>
               <span className="btn-text">Chat Boat</span>
-            </Link>
+            </button>
           </div>
           
           <div className="hero-stats">

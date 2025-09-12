@@ -34,6 +34,14 @@ const Login = () => {
       localStorage.setItem('user', JSON.stringify(user));
       const roles = user.roles.map((r) => r.name);
 
+      // Check if user came from chat page
+      const fromChat = sessionStorage.getItem('redirectToChat');
+      if (fromChat) {
+        sessionStorage.removeItem('redirectToChat');
+        navigate('/chat');
+        return;
+      }
+
       if (roles.includes('ROLE_ADMIN')) {
         navigate('/admin/dashboard');
       } else if (roles.includes('ROLE_WORKER')) {

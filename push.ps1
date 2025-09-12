@@ -12,3 +12,4 @@ git commit -m "Fix API key handling and provider isolation"
 git push origin main
 
 Write-Host "Code pushed successfully!" -ForegroundColor Green
+

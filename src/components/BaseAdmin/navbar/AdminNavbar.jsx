@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaBars, FaBell, FaUserCircle, FaSignOutAlt, FaCog, FaHardHat } from 'react-icons/fa';
+import { FaBars, FaBell, FaUserCircle, FaSignOutAlt, FaCog, FaHardHat, FaComments } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../redux/authSlice';
 import { useNavigate } from 'react-router-dom';
@@ -169,6 +169,16 @@ const AdminNavbar = ({ toggleSidebar }) => {
                   Worker Panel
                 </button>
               )}
+              <button 
+                className="dropdown-item"
+                onClick={() => {
+                  navigate('/chat');
+                  setShowDropdown(false);
+                }}
+              >
+                <FaComments className="dropdown-icon" />
+                Chat Boat
+              </button>
               <button 
                 className="dropdown-item"
                 onClick={() => {
