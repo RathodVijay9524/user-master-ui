@@ -19,6 +19,23 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
     }
   }, [dispatch, user]);
 
+  // Debug: Log conversation data to see token values
+  useEffect(() => {
+    if (conversations.length > 0) {
+      console.log('🔍 ChatList - Conversation data:', conversations);
+      conversations.forEach((conv, index) => {
+        console.log(`📊 Conversation ${index}:`, {
+          id: conv.id,
+          title: conv.title,
+          totalTokens: conv.totalTokens,
+          totalTokensUsed: conv.totalTokensUsed,
+          tokensUsed: conv.tokensUsed,
+          allFields: conv
+        });
+      });
+    }
+  }, [conversations]);
+
   // Debug logging
   console.log('ChatList - Current state:', { conversations, isLoading, error, user });
   
@@ -198,10 +215,10 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Header with Search */}
-      <div className="px-4 py-4 border-b flex-shrink-0" style={{ borderColor: theme?.border || '#e5e7eb' }}>
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-4 py-3 border-b flex-shrink-0" style={{ borderColor: theme?.border || '#e5e7eb' }}>
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold flex items-center" style={{ color: theme?.text || '#1f2937' }}>
             <span className="mr-2 text-xl">💬</span>
             Chat History
@@ -235,37 +252,41 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
       </div>
       
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto space-y-2 px-2 py-2">
-        <div className="text-xs font-medium mb-2 px-2" style={{ color: theme?.text || '#6b7280' }}>
+      <div className="flex-1 overflow-y-auto space-y-2 px-2 py-2 min-h-0">
+        <div className="text-xs font-medium mb-2 px-2 sticky top-0 bg-opacity-90 backdrop-blur-sm" style={{ 
+          color: theme?.text || '#6b7280',
+          backgroundColor: theme?.main || '#ffffff'
+        }}>
           Recent Conversations ({conversations.length})
         </div>
         
-        {conversations.map((conversation, index) => (
-          <div
-            key={conversation.id}
-            className={`group p-4 rounded-xl cursor-pointer hover-lift animate-slide-in-up ${
-              expandedConversation === conversation.conversationId ? 'ring-2 shadow-lg' : ''
-            }`}
-            style={{
-              backgroundColor: expandedConversation === conversation.conversationId 
-                ? theme?.accent + '15' || '#ff980015'
-                : theme?.bubble || '#f8fafc',
-              borderColor: expandedConversation === conversation.conversationId 
-                ? theme?.accent || '#ff9800'
-                : 'transparent',
-              border: expandedConversation === conversation.conversationId ? '1px solid' : 'none',
-              animationDelay: `${index * 100}ms`
-            }}
-            onClick={() => handleConversationClick(conversation)}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-sm" style={{ backgroundColor: theme?.accent + '20' || '#ff980020' }}>
+        <div className="space-y-1 pb-2">
+          {conversations.map((conversation, index) => (
+            <div
+              key={conversation.id}
+              className={`group p-3 rounded-lg cursor-pointer hover-lift animate-slide-in-up ${
+                expandedConversation === conversation.conversationId ? 'ring-2 shadow-lg' : ''
+              }`}
+              style={{
+                backgroundColor: expandedConversation === conversation.conversationId 
+                  ? theme?.accent + '15' || '#ff980015'
+                  : theme?.bubble || '#f8fafc',
+                borderColor: expandedConversation === conversation.conversationId 
+                  ? theme?.accent || '#ff9800'
+                  : 'transparent',
+                border: expandedConversation === conversation.conversationId ? '1px solid' : 'none',
+                animationDelay: `${index * 100}ms`
+              }}
+              onClick={() => handleConversationClick(conversation)}
+            >
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm" style={{ backgroundColor: theme?.accent + '20' || '#ff980020' }}>
                   {getProviderIcon(conversation.provider)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div 
-                    className="text-sm font-semibold truncate mb-1"
+                    className="text-sm font-semibold truncate"
                     style={{ color: theme?.text || '#1f2937' }}
                     title={conversation.title}
                   >
@@ -282,7 +303,7 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
               </div>
               <div className="text-xs opacity-75 ml-2 text-right" style={{ color: theme?.text || '#6b7280' }}>
                 <div className="font-medium">{formatDate(conversation.updatedAt)}</div>
-                <div className="opacity-60">{conversation.totalTokens || 0} tokens</div>
+                <div className="opacity-60">{conversation.totalTokens || conversation.totalTokensUsed || conversation.tokensUsed || 0} tokens</div>
               </div>
             </div>
             
@@ -294,7 +315,7 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
                 </span>
                 <span className="flex items-center">
                   <span className="mr-1">⚡</span>
-                  {conversation.totalTokens || 0} tokens
+                  {conversation.totalTokens || conversation.totalTokensUsed || conversation.tokensUsed || 0} tokens
                 </span>
               </div>
               <div className="opacity-60 group-hover:opacity-100 transition-opacity duration-200">
@@ -302,7 +323,8 @@ const ChatList = ({ onConversationSelect, theme, onClose }) => {
               </div>
             </div>
           </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

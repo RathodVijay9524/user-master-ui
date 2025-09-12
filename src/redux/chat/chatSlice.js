@@ -164,6 +164,7 @@ const chatSlice = createSlice({
     clear: (state) => {
       state.messages = [];
       state.error = null;
+      state.currentConversationId = `conv-${Date.now()}`;
     },
     
     // Reset conversation ID
@@ -174,7 +175,8 @@ const chatSlice = createSlice({
     // Load conversation messages into main chat
     loadConversationMessages: (state, action) => {
       state.messages = action.payload || [];
-      state.currentConversationId = action.payload?.[0]?.conversationId || state.currentConversationId;
+      // Don't update currentConversationId when loading from history
+      // This allows "New Chat" to create a fresh conversation
     },
     
     // Send chat message (simplified for UI)

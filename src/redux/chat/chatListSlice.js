@@ -97,10 +97,21 @@ const chatListSlice = createSlice({
       .addCase(fetchUserChats.fulfilled, (state, action) => {
         state.isLoading = false;
         console.log('chatListSlice - Received payload:', action.payload);
+        console.log('chatListSlice - Payload type:', typeof action.payload);
+        console.log('chatListSlice - Is array:', Array.isArray(action.payload));
+        
         // Handle both direct array and wrapped object responses
-        state.conversations = Array.isArray(action.payload) 
+        const conversations = Array.isArray(action.payload) 
           ? action.payload 
           : (action.payload.conversations || []);
+        
+        console.log('chatListSlice - Processed conversations:', conversations);
+        if (conversations.length > 0) {
+          console.log('chatListSlice - First conversation fields:', Object.keys(conversations[0]));
+          console.log('chatListSlice - First conversation data:', conversations[0]);
+        }
+        
+        state.conversations = conversations;
       })
       .addCase(fetchUserChats.rejected, (state, action) => {
         state.isLoading = false;

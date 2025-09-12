@@ -903,22 +903,21 @@ export default function ChatBoxMcp() {
       {showChatList && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in-scale">
           <div
-            className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col animate-slide-in-up"
+            className="rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col animate-slide-in-up"
             style={{
               backgroundColor: colors.main || '#ffffff',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+              minHeight: '400px'
             }}
           >
-            <div className="flex-1 overflow-hidden">
-              <ChatList 
-                onConversationSelect={(conversation) => {
-                  setShowConversationHistory(true);
-                  setShowChatList(false);
-                }}
-                theme={colors}
-                onClose={() => setShowChatList(false)}
-              />
-            </div>
+            <ChatList 
+              onConversationSelect={(conversation) => {
+                setShowConversationHistory(true);
+                setShowChatList(false);
+              }}
+              theme={colors}
+              onClose={() => setShowChatList(false)}
+            />
           </div>
         </div>
       )}
