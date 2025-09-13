@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { chatApi } from '../../app/chat/services/chatApi';
+import { enhanceTextWithCleanMCP } from '../../app/chat/utils/mcpResponseCleaner';
 
 // Initial state
 const initialState = {
@@ -174,7 +175,20 @@ const chatSlice = createSlice({
     
     // Load conversation messages into main chat
     loadConversationMessages: (state, action) => {
-      state.messages = action.payload || [];
+      const messages = action.payload || [];
+      
+      // Enhance AI messages when loading from history with provider info
+      const enhancedMessages = messages.map(msg => {
+        if (msg.role === 'assistant' && msg.text) {
+          return {
+            ...msg,
+            text: enhanceTextWithCleanMCP(msg.text, msg.provider, msg.model)
+          };
+        }
+        return msg;
+      });
+      
+      state.messages = enhancedMessages;
       // Don't update currentConversationId when loading from history
       // This allows "New Chat" to create a fresh conversation
     },
@@ -218,7 +232,14 @@ const chatSlice = createSlice({
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.messages.push(action.payload);
+        
+        // Enhance the AI response text before storing it with provider info
+        const enhancedMessage = {
+          ...action.payload,
+          text: enhanceTextWithCleanMCP(action.payload.text, action.payload.provider, action.payload.model)
+        };
+        
+        state.messages.push(enhancedMessage);
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.isLoading = false;

@@ -115,18 +115,31 @@ export default function ChatBoxMcp() {
   // Fetch user image
   useEffect(() => {
     const fetchUserImage = async () => {
-      if (!user?.id) return;
+      console.log('🔍 Fetching user image - User:', user);
+      console.log('🔍 User ID:', user?.id);
+      console.log('🔍 User Username:', user?.username);
+      
+      if (!user?.id) {
+        console.log('❌ No user ID found, skipping image fetch');
+        return;
+      }
+      
       setImageError(false);
       try {
+        console.log('📡 Dispatching getUserImage for user ID:', user.id);
         const result = await dispatch(getUserImage(user.id)).unwrap();
+        console.log('📡 getUserImage result:', result);
+        
         if (result) {
           const imageUrl = `${axiosInstance.defaults.baseURL}/users/image/${user.id}?t=${Date.now()}`;
+          console.log('🖼️ Setting user image URL:', imageUrl);
           setUserImageUrl(imageUrl);
         } else {
+          console.log('📭 No image result, clearing image URL');
           setUserImageUrl('');
         }
       } catch (error) {
-        console.warn('Failed to load user image:', error);
+        console.warn('❌ Failed to load user image:', error);
         setUserImageUrl('');
         setImageError(true);
       }
@@ -134,6 +147,8 @@ export default function ChatBoxMcp() {
 
     if (user?.id) {
       fetchUserImage();
+    } else {
+      console.log('⚠️ No user or user ID, not fetching image');
     }
   }, [user, dispatch]);
 
@@ -677,12 +692,19 @@ export default function ChatBoxMcp() {
                           src={userImageUrl}
                           alt="User Avatar"
                           className="w-full h-full object-cover rounded-full"
-                          onError={() => setImageError(true)}
+                          onError={() => {
+                            console.log('❌ User image failed to load:', userImageUrl);
+                            setImageError(true);
+                          }}
+                          onLoad={() => {
+                            console.log('✅ User image loaded successfully:', userImageUrl);
+                          }}
                         />
                       ) : (
                         <div 
                           className="w-full h-full rounded-full flex items-center justify-center text-white text-lg font-bold"
                           style={{ backgroundColor: colors.userBubble }}
+                          title={`Fallback avatar for user: ${user?.username || 'Unknown'}`}
                         >
                           {user?.username?.charAt(0)?.toUpperCase() || 'U'}
                         </div>

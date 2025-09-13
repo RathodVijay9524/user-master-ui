@@ -1,163 +1,15 @@
-// Simple Text Enhancer - Adds intelligent icons before words
+// Intelligent Text Enhancer - Adds icons to headers and structured content
 
-export const WORD_ICON_MAPPINGS = {
-  // Success and positive words
-  'working': '✅',
-  'success': '✅',
-  'completed': '✅',
-  'done': '✅',
-  'fixed': '✅',
-  'resolved': '✅',
-  'available': '✅',
-  'ready': '✅',
-  'enabled': '✅',
-  'active': '✅',
-  
-  // Features and capabilities
-  'features': '🚀',
-  'capabilities': '🚀',
-  'functionality': '🚀',
-  'tools': '🛠️',
-  'dashboard': '📊',
-  'system': '⚙️',
-  'platform': '🏗️',
-  
-  // Information and analysis
-  'analysis': '🔍',
-  'analyze': '🔍',
-  'overview': '📋',
-  'summary': '📋',
-  'details': '📝',
-  'information': 'ℹ️',
-  'data': '📊',
-  'metrics': '📈',
-  
-  // Development and code
-  'code': '💻',
-  'programming': '💻',
-  'development': '💻',
-  'implementation': '🔧',
-  'configuration': '⚙️',
-  'setup': '🔧',
-  'install': '📦',
-  'build': '🏗️',
-  
-  // Security and quality
-  'security': '🔒',
-  'secure': '🔒',
-  'authentication': '🔐',
-  'authorization': '🔐',
-  'quality': '⭐',
-  'performance': '⚡',
-  'optimization': '🚀',
-  'optimize': '🚀',
-  
-  // Errors and issues
-  'error': '❌',
-  'issue': '⚠️',
-  'problem': '⚠️',
-  'bug': '🐛',
-  'fix': '🔧',
-  'debug': '🐛',
-  'troubleshoot': '🔍',
-  
-  // Examples and tutorials
-  'example': '💡',
-  'examples': '💡',
-  'tutorial': '📚',
-  'guide': '📖',
-  'documentation': '📚',
-  'help': '❓',
-  'support': '🤝',
-  
-  // Benefits and advantages
-  'benefits': '✨',
-  'advantages': '✨',
-  'improvements': '📈',
-  'enhancement': '✨',
-  'upgrade': '⬆️',
-  
-  // Warnings and important
-  'warning': '⚠️',
-  'important': '❗',
-  'note': '📝',
-  'remember': '💭',
-  'attention': '👀',
-  'caution': '⚠️',
-  
-  // Testing and validation
-  'test': '🧪',
-  'testing': '🧪',
-  'validation': '✔️',
-  'verify': '✔️',
-  'check': '✔️',
-  
-  // Deployment and operations
-  'deploy': '🚀',
-  'deployment': '🚀',
-  'production': '🏭',
-  'environment': '🌍',
-  
-  // Database and storage
-  'database': '🗄️',
-  'storage': '💾',
-  'cache': '⚡',
-  'memory': '🧠',
-  
-  // Network and API
-  'api': '🌐',
-  'network': '🌐',
-  'endpoint': '🔗',
-  'connection': '🔗',
-  'request': '📤',
-  'response': '📥',
-  
-  // MCP Tools
-  'mcp': '🛠️',
-  'tools': '🛠️',
-  'spring_ai_mcp_client': '🔧',
-  'coding_assistant': '💻',
-  'fullanalysis': '🔍',
-  'overview': '📋',
-  'structure': '🏗️',
-  'quality': '⭐',
-  'performance': '⚡',
-  'generatetests': '🧪',
-  'dockerize': '🐳',
-  'create': '➕',
-  'generate': '🎯'
-};
-
-// Function to add icons to text content
+// Function to add icons to headers and structured content only
 export const enhanceTextWithIcons = (text) => {
   if (!text || typeof text !== 'string') return text;
   
-  let enhancedText = text;
-  
-  // Process each word mapping
-  Object.entries(WORD_ICON_MAPPINGS).forEach(([word, icon]) => {
-    // Create regex to match the word at the beginning of sentences or after punctuation
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    
-    // Replace with icon + word, but avoid double icons
-    enhancedText = enhancedText.replace(regex, (match) => {
-      // Check if there's already an icon before this word
-      const beforeMatch = enhancedText.substring(0, enhancedText.indexOf(match));
-      const lastChar = beforeMatch.charAt(beforeMatch.length - 1);
-      
-      // If there's already an icon or emoji before, don't add another
-      if (lastChar.match(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u)) {
-        return match;
-      }
-      
-      return `${icon} ${match}`;
-    });
-  });
-  
-  return enhancedText;
+  // Don't add icons to individual words - only to headers and structured content
+  // This prevents the scattered icon problem
+  return text;
 };
 
-// Function to enhance specific phrases
+// Function to enhance headers and structured content
 export const enhancePhrasesWithIcons = (text) => {
   if (!text || typeof text !== 'string') return text;
   
@@ -239,51 +91,26 @@ export const enhancePhrasesWithIcons = (text) => {
     { pattern: /^response:/gmi, icon: '📤' },
     { pattern: /^input:/gmi, icon: '📥' },
     { pattern: /^parameters:/gmi, icon: '📥' },
-    { pattern: /^arguments:/gmi, icon: '📥' }
+    { pattern: /^arguments:/gmi, icon: '📥' },
+    // Numbered list patterns (1. 2. 3.)
+    { pattern: /^1\.\s+(.+)/gmi, icon: '1️⃣' },
+    { pattern: /^2\.\s+(.+)/gmi, icon: '2️⃣' },
+    { pattern: /^3\.\s+(.+)/gmi, icon: '3️⃣' },
+    { pattern: /^4\.\s+(.+)/gmi, icon: '4️⃣' },
+    { pattern: /^5\.\s+(.+)/gmi, icon: '5️⃣' },
+    // Common AI response patterns
+    { pattern: /^as an enhanced ai coding assistant/i, icon: '🤖' },
+    { pattern: /^i am an ai coding assistant/i, icon: '🤖' },
+    { pattern: /^here are some of the key ways/i, icon: '🚀' },
+    { pattern: /^project setup and scaffolding/i, icon: '🏗️' },
+    { pattern: /^domain modeling and entity creation/i, icon: '📊' },
+    { pattern: /^controller and service layer development/i, icon: '⚙️' }
   ];
 
-  // Apply header mappings
+  // Apply header mappings - only for headers at start of line
   headerMappings.forEach(({ pattern, icon }) => {
     enhancedText = enhancedText.replace(pattern, (match) => {
       // Check if there's already an icon before this header
-      const beforeMatch = enhancedText.substring(0, enhancedText.indexOf(match));
-      const lastChar = beforeMatch.charAt(beforeMatch.length - 1);
-      
-      // If there's already an icon before, don't add another
-      if (lastChar.match(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u)) {
-        return match;
-      }
-      
-      return `${icon} ${match}`;
-    });
-  });
-
-  // Common phrases with icons - only for specific contexts
-  const phraseMappings = [
-    { pattern: /\b(what's now working|what is working)\b/gi, icon: '🚀' },
-    { pattern: /\b(feature list|list of features)\b/gi, icon: '🚀' },
-    { pattern: /\b(example list|list of examples)\b/gi, icon: '💡' },
-    { pattern: /\b(benefit list|list of benefits)\b/gi, icon: '✨' },
-    { pattern: /\b(troubleshooting guide|troubleshooting steps)\b/gi, icon: '🔍' },
-    { pattern: /\b(code analysis|project analysis)\b/gi, icon: '🔍' },
-    { pattern: /\b(security check|security audit)\b/gi, icon: '🔒' },
-    { pattern: /\b(performance test|performance check)\b/gi, icon: '⚡' },
-    { pattern: /\b(test suite|test cases)\b/gi, icon: '🧪' },
-    { pattern: /\b(deployment guide|deployment steps)\b/gi, icon: '🚀' },
-    { pattern: /\b(database schema|database structure)\b/gi, icon: '🗄️' },
-    { pattern: /\b(api documentation|api guide)\b/gi, icon: '🌐' },
-    { pattern: /\b(authentication system|auth system)\b/gi, icon: '🔐' },
-    { pattern: /\b(code quality check|quality audit)\b/gi, icon: '⭐' },
-    { pattern: /\b(documentation guide|docs guide)\b/gi, icon: '📚' },
-    { pattern: /\b(tutorial guide|learning guide)\b/gi, icon: '📖' },
-    { pattern: /\b(error handling guide|error management)\b/gi, icon: '❌' },
-    { pattern: /\b(warning message|caution notice)\b/gi, icon: '⚠️' },
-    { pattern: /\b(important note|important information)\b/gi, icon: '❗' }
-  ];
-  
-  phraseMappings.forEach(({ pattern, icon }) => {
-    enhancedText = enhancedText.replace(pattern, (match) => {
-      // Check if there's already an icon before this phrase
       const beforeMatch = enhancedText.substring(0, enhancedText.indexOf(match));
       const lastChar = beforeMatch.charAt(beforeMatch.length - 1);
       
@@ -387,26 +214,209 @@ export const enhanceProjectStructure = (text) => {
   return enhancedText;
 };
 
-// Main function to enhance AI response text
-export const enhanceAIResponseText = (text) => {
+// Function to add response source footer
+export const addResponseSourceFooter = (text, provider = null, model = null) => {
   if (!text || typeof text !== 'string') return text;
   
-  // First enhance project structures
-  let enhancedText = enhanceProjectStructure(text);
+  // Provider info mapping
+  const providerInfo = {
+    'gemini': { name: '💎 Gemini Pro', icon: '💎' },
+    'ollama': { name: '🦙 Ollama', icon: '🦙' },
+    'openai': { name: '🔑 OpenAI GPT-4', icon: '🔑' },
+    'openrouter': { name: '🌐 OpenRouter', icon: '🌐' },
+    'claude': { name: '🤖 Claude AI', icon: '🤖' },
+    'gpt-4': { name: '🔑 GPT-4', icon: '🔑' },
+    'gpt-3.5': { name: '🔑 GPT-3.5', icon: '🔑' }
+  };
+  
+  // Get provider display info
+  const providerData = providerInfo[provider] || { name: provider || 'AI Assistant', icon: '🤖' };
+  
+  // Clean up the text before adding footer - remove any trailing line breaks
+  let cleanText = text.trim();
+  
+  // Create simple footer without any lines - just the text
+  const footer = `\n\n${providerData.icon} Response generated by ${providerData.name}${model ? ` (${model})` : ''}`;
+  
+  return cleanText + footer;
+};
+
+// Function to detect and enhance structured content patterns
+export const enhanceStructuredContent = (text) => {
+  if (!text || typeof text !== 'string') return text;
+  
+  let enhancedText = text;
+  
+  // First, format lists and separate items properly
+  enhancedText = formatListsAndItems(enhancedText);
+  
+  // Detect common AI response patterns and add structure
+  const patterns = [
+    // AI Assistant introductions
+    { 
+      pattern: /I am an AI coding assistant with access to (\d+) MCP tools, including/gi, 
+      replacement: '🤖 **AI Assistant:** I have access to $1 MCP tools, including:'
+    },
+    // Tool lists - format them as proper lists
+    { 
+      pattern: /including:\s*([^.]*?)\s*and many others for ([^.]*)/gi, 
+      replacement: 'including:\n\n$1\n\n📋 **For:** $2'
+    },
+    // Here are the key ways/support patterns
+    { 
+      pattern: /Here are (?:some of )?(?:the )?key ways I can (?:support you|help you|assist you)/gi, 
+      replacement: '🚀 **How I Can Help:**'
+    },
+    // Project setup and scaffolding
+    { 
+      pattern: /(?:Project Setup and Scaffolding|Project setup and scaffolding)/gi, 
+      replacement: '🏗️ **Project Setup and Scaffolding**'
+    },
+    // Domain modeling
+    { 
+      pattern: /(?:Domain Modeling and Entity Creation|Domain modeling and entity creation)/gi, 
+      replacement: '📊 **Domain Modeling and Entity Creation**'
+    },
+    // Controller and service development
+    { 
+      pattern: /(?:Controller and Service Layer Development|Controller and service layer development)/gi, 
+      replacement: '⚙️ **Controller and Service Layer Development**'
+    },
+    // Tool usage patterns
+    { 
+      pattern: /I can use the `([^`]+)` tool to ([^.]*)/gi, 
+      replacement: '🛠️ **Tool:** `$1`\n\n📋 **Action:** $2'
+    },
+    // I can help/create patterns
+    { 
+      pattern: /I can help you ([^.]*)/gi, 
+      replacement: '💡 **I can help you:** $1'
+    },
+    { 
+      pattern: /I can create ([^.]*)/gi, 
+      replacement: '🔧 **I can create:** $1'
+    },
+    { 
+      pattern: /I can generate ([^.]*)/gi, 
+      replacement: '🎯 **I can generate:** $1'
+    },
+    { 
+      pattern: /I can set up ([^.]*)/gi, 
+      replacement: '⚙️ **I can set up:** $1'
+    },
+    // Analysis results
+    { 
+      pattern: /The output is a ([^.]*)/gi, 
+      replacement: '📊 **Result:** $1'
+    },
+    // Project structure mentions
+    { 
+      pattern: /project structure at ([^.]*)/gi, 
+      replacement: '🏗️ **Project Structure:** $1'
+    },
+    // Limitations or notes
+    { 
+      pattern: /Due to the limitations of ([^.]*)/gi, 
+      replacement: '⚠️ **Note:** Due to the limitations of $1'
+    },
+    // However/But statements
+    { 
+      pattern: /However, ([^.]*)/gi, 
+      replacement: '💡 **However:** $1'
+    },
+    // Tool provides
+    { 
+      pattern: /the tool provides ([^.]*)/gi, 
+      replacement: '✨ **Tool Capabilities:** $1'
+    },
+    // I can help with various tasks
+    { 
+      pattern: /I can help with various tasks such as ([^.]*)/gi, 
+      replacement: '💼 **I can help with:** $1'
+    },
+    // Specify your request
+    { 
+      pattern: /Specify your request for assistance/gi, 
+      replacement: '📝 **Next Steps:** Specify your request for assistance'
+    }
+  ];
+  
+  patterns.forEach(({ pattern, replacement }) => {
+    enhancedText = enhancedText.replace(pattern, replacement);
+  });
+  
+  return enhancedText;
+};
+
+// Function to format lists and separate items properly
+export const formatListsAndItems = (text) => {
+  if (!text || typeof text !== 'string') return text;
+  
+  let formattedText = text;
+  
+  // Format tool lists - separate each tool on its own line
+  formattedText = formattedText
+    // Handle tool lists with "including:" pattern
+    .replace(/including:\s*([^.]*?)\s*and many others/g, (match, tools) => {
+      // Split tools by common separators and format each
+      const toolList = tools
+        .split(/,\s*|\s+and\s+/)
+        .map(tool => tool.trim())
+        .filter(tool => tool.length > 0)
+        .map(tool => `🔹 ${tool}`)
+        .join('\n');
+      
+      return `including:\n\n${toolList}\n\n🔹 And many others`;
+    })
+    // Format bullet points for better readability with attractive icons
+    .replace(/\*\s+/g, '🔹 ')
+    .replace(/•\s+/g, '🔹 ')
+    // Format "I can help with" lists
+    .replace(/I can help with ([^.]*)/g, (match, tasks) => {
+      const taskList = tasks
+        .split(/,\s*and\s+|,\s*/)
+        .map(task => task.trim())
+        .filter(task => task.length > 0)
+        .map(task => `🔹 ${task}`)
+        .join('\n');
+      
+      return `I can help with:\n${taskList}`;
+    });
+  
+  return formattedText;
+};
+
+// Main function to enhance AI response text
+export const enhanceAIResponseText = (text, provider = null, model = null) => {
+  if (!text || typeof text !== 'string') return text;
+  
+  // First enhance structured content patterns
+  let enhancedText = enhanceStructuredContent(text);
+  
+  // Then enhance project structures
+  enhancedText = enhanceProjectStructure(enhancedText);
   
   // Then enhance phrases and headers
   enhancedText = enhancePhrasesWithIcons(enhancedText);
-  enhancedText = enhanceTextWithIcons(enhancedText);
   
-  // Clean up any double spaces
-  enhancedText = enhancedText.replace(/\s+/g, ' ');
+  // Clean up any double spaces but preserve line breaks
+  enhancedText = enhancedText.replace(/[ \t]+/g, ' ');
+  
+  // Add response source footer if provider info is available
+  if (provider) {
+    enhancedText = addResponseSourceFooter(enhancedText, provider, model);
+  }
   
   return enhancedText;
 };
 
 export default {
-  WORD_ICON_MAPPINGS,
   enhanceTextWithIcons,
   enhancePhrasesWithIcons,
+  formatTreeStructure,
+  enhanceProjectStructure,
+  formatListsAndItems,
+  addResponseSourceFooter,
+  enhanceStructuredContent,
   enhanceAIResponseText
 };
