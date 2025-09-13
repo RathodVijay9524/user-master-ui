@@ -291,7 +291,7 @@ export default function ChatBoxMcp() {
   const colors = themes[theme];
 
   return (
-    <div className="flex h-screen relative" style={{ background: colors.main, color: colors.text }}>
+    <div className="flex h-screen relative" style={{ background: colors.main, color: colors.text }} data-theme={theme}>
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div 
@@ -623,10 +623,10 @@ export default function ChatBoxMcp() {
                     <div className="flex flex-col max-w-xl">
                       <span className="text-xs opacity-60 mb-1">You</span>
                   <div
-                    className={`px-4 py-2 rounded-2xl ${
+                    className={`px-4 py-2 rounded-2xl chat-message ${
                       msg.role === "user" 
                         ? "rounded-br-sm shadow-lg" 
-                        : "rounded-bl-sm shadow-md"
+                        : "rounded-bl-sm shadow-md ai-message"
                     }`}
                     style={{
                       backgroundColor: msg.role === "user" ? colors.userBubble : colors.aiBubble,
@@ -723,10 +723,10 @@ export default function ChatBoxMcp() {
                     <div className="flex flex-col max-w-xl">
                       <span className="text-xs opacity-60 mb-1">AI Assistant</span>
                       <div
-                        className={`px-4 py-2 rounded-2xl ${
+                        className={`px-4 py-2 rounded-2xl chat-message ${
                           msg.role === "user" 
                             ? "rounded-br-sm shadow-lg" 
-                            : "rounded-bl-sm shadow-md"
+                            : "rounded-bl-sm shadow-md ai-message"
                         }`}
                         style={{
                           backgroundColor: msg.role === "user" ? colors.userBubble : colors.aiBubble,
@@ -1134,6 +1134,141 @@ export default function ChatBoxMcp() {
           word-wrap: break-word;
           word-break: break-word;
           hyphens: auto;
+        }
+
+        /* Enhanced Typography for Professional Look */
+        .chat-message {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+          font-size: 14px;
+          line-height: 1.6;
+          letter-spacing: 0.01em;
+          font-weight: 400;
+        }
+
+        .chat-message strong {
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+
+        .chat-message h1, .chat-message h2, .chat-message h3, .chat-message h4, .chat-message h5, .chat-message h6 {
+          font-weight: 600;
+          line-height: 1.4;
+          margin: 0.5em 0;
+          letter-spacing: 0.02em;
+        }
+
+        .chat-message code {
+          font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace;
+          font-size: 0.9em;
+          padding: 0.2em 0.4em;
+          border-radius: 4px;
+          background-color: rgba(0, 0, 0, 0.1);
+          font-weight: 500;
+        }
+
+        .chat-message ul, .chat-message ol {
+          padding-left: 0;
+          margin: 0.5em 0;
+        }
+
+        .chat-message li {
+          margin: 0.3em 0;
+          line-height: 1.5;
+        }
+
+        /* Enhanced readability for different themes */
+        [data-theme="dark"] .chat-message {
+          color: #e5e7eb;
+          font-weight: 400;
+        }
+
+        [data-theme="dark"] .chat-message strong {
+          color: #f9fafb;
+          font-weight: 600;
+        }
+
+        [data-theme="dark"] .chat-message code {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #f3f4f6;
+        }
+
+
+        [data-theme="light"] .chat-message {
+          color: #374151;
+          font-weight: 400;
+        }
+
+        [data-theme="light"] .chat-message strong {
+          color: #1f2937;
+          font-weight: 600;
+        }
+
+        [data-theme="light"] .chat-message code {
+          background-color: rgba(0, 0, 0, 0.05);
+          color: #1f2937;
+        }
+
+        [data-theme="green"] .chat-message {
+          color: #ffffff;
+          font-weight: 400;
+        }
+
+        [data-theme="green"] .chat-message strong {
+          color: #f0fdf4;
+          font-weight: 600;
+        }
+
+        [data-theme="green"] .chat-message code {
+          background-color: rgba(255, 255, 255, 0.15);
+          color: #f0fdf4;
+        }
+
+        /* Enhanced spacing and readability */
+        .chat-message {
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Better spacing for different content types */
+        .chat-message p {
+          margin: 0.5em 0;
+        }
+
+        .chat-message p:first-child {
+          margin-top: 0;
+        }
+
+        .chat-message p:last-child {
+          margin-bottom: 0;
+        }
+
+        /* Enhanced bullet points */
+        .chat-message .bullet-item {
+          margin: 0.4em 0;
+          padding-left: 0.5em;
+        }
+
+        /* Better header styling */
+        .chat-message .section-header {
+          margin: 0.8em 0 0.5em 0;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+
+        /* Responsive font sizes */
+        @media (max-width: 768px) {
+          .chat-message {
+            font-size: 13px;
+            line-height: 1.5;
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .chat-message {
+            font-size: 15px;
+            line-height: 1.7;
+          }
         }
 
         /* Mobile keyboard handling */

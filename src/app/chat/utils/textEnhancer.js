@@ -98,13 +98,34 @@ export const enhancePhrasesWithIcons = (text) => {
     { pattern: /^3\.\s+(.+)/gmi, icon: '3️⃣' },
     { pattern: /^4\.\s+(.+)/gmi, icon: '4️⃣' },
     { pattern: /^5\.\s+(.+)/gmi, icon: '5️⃣' },
-    // Common AI response patterns
+    // Common AI response patterns - More comprehensive
     { pattern: /^as an enhanced ai coding assistant/i, icon: '🤖' },
     { pattern: /^i am an ai coding assistant/i, icon: '🤖' },
+    { pattern: /^i am an enhanced ai coding assistant/i, icon: '🤖' },
+    { pattern: /^as an ai assistant/i, icon: '🤖' },
+    { pattern: /^i am an ai assistant/i, icon: '🤖' },
     { pattern: /^here are some of the key ways/i, icon: '🚀' },
+    { pattern: /^here are the key ways/i, icon: '🚀' },
+    { pattern: /^here are the main areas/i, icon: '🚀' },
+    { pattern: /^my capabilities include/i, icon: '🚀' },
+    { pattern: /^i can help you in the following ways/i, icon: '🚀' },
     { pattern: /^project setup and scaffolding/i, icon: '🏗️' },
+    { pattern: /^project setup/i, icon: '🏗️' },
     { pattern: /^domain modeling and entity creation/i, icon: '📊' },
-    { pattern: /^controller and service layer development/i, icon: '⚙️' }
+    { pattern: /^domain modeling/i, icon: '📊' },
+    { pattern: /^controller and service layer development/i, icon: '⚙️' },
+    { pattern: /^controller and service development/i, icon: '⚙️' },
+    { pattern: /^code generation/i, icon: '💻' },
+    { pattern: /^code analysis and optimization/i, icon: '🔍' },
+    { pattern: /^code analysis/i, icon: '🔍' },
+    { pattern: /^testing and quality assurance/i, icon: '🧪' },
+    { pattern: /^testing/i, icon: '🧪' },
+    { pattern: /^spring boot configuration/i, icon: '⚙️' },
+    { pattern: /^configuration/i, icon: '⚙️' },
+    { pattern: /^i can help you/i, icon: '💡' },
+    { pattern: /^i can create/i, icon: '🔧' },
+    { pattern: /^i can generate/i, icon: '🎯' },
+    { pattern: /^i can set up/i, icon: '⚙️' }
   ];
 
   // Apply header mappings - only for headers at start of line
@@ -252,45 +273,125 @@ export const enhanceStructuredContent = (text) => {
   
   // Detect common AI response patterns and add structure
   const patterns = [
-    // AI Assistant introductions
+    // AI Assistant introductions - More comprehensive patterns
     { 
       pattern: /I am an AI coding assistant with access to (\d+) MCP tools, including/gi, 
       replacement: '🤖 **AI Assistant:** I have access to $1 MCP tools, including:'
+    },
+    { 
+      pattern: /I am an enhanced AI coding assistant/gi, 
+      replacement: '🤖 **Enhanced AI Coding Assistant**'
+    },
+    { 
+      pattern: /As an enhanced AI coding assistant/gi, 
+      replacement: '🤖 **Enhanced AI Coding Assistant**'
+    },
+    { 
+      pattern: /I am an AI assistant/gi, 
+      replacement: '🤖 **AI Assistant**'
+    },
+    { 
+      pattern: /As an AI assistant/gi, 
+      replacement: '🤖 **AI Assistant**'
     },
     // Tool lists - format them as proper lists
     { 
       pattern: /including:\s*([^.]*?)\s*and many others for ([^.]*)/gi, 
       replacement: 'including:\n\n$1\n\n📋 **For:** $2'
     },
-    // Here are the key ways/support patterns
+    // Here are the key ways/support patterns - More variations
     { 
       pattern: /Here are (?:some of )?(?:the )?key ways I can (?:support you|help you|assist you)/gi, 
       replacement: '🚀 **How I Can Help:**'
     },
-    // Project setup and scaffolding
+    { 
+      pattern: /Here are the main areas where I can assist/gi, 
+      replacement: '🚀 **How I Can Help:**'
+    },
+    { 
+      pattern: /I can help you in the following ways/gi, 
+      replacement: '🚀 **How I Can Help:**'
+    },
+    { 
+      pattern: /My capabilities include/gi, 
+      replacement: '🚀 **My Capabilities:**'
+    },
+    // Project setup and scaffolding - More variations
     { 
       pattern: /(?:Project Setup and Scaffolding|Project setup and scaffolding)/gi, 
       replacement: '🏗️ **Project Setup and Scaffolding**'
     },
-    // Domain modeling
+    { 
+      pattern: /Project setup and scaffolding/gi, 
+      replacement: '🏗️ **Project Setup and Scaffolding**'
+    },
+    // Domain modeling - More variations
     { 
       pattern: /(?:Domain Modeling and Entity Creation|Domain modeling and entity creation)/gi, 
       replacement: '📊 **Domain Modeling and Entity Creation**'
     },
-    // Controller and service development
+    { 
+      pattern: /Domain modeling and entity creation/gi, 
+      replacement: '📊 **Domain Modeling and Entity Creation**'
+    },
+    // Controller and service development - More variations
     { 
       pattern: /(?:Controller and Service Layer Development|Controller and service layer development)/gi, 
       replacement: '⚙️ **Controller and Service Layer Development**'
+    },
+    { 
+      pattern: /Controller and service layer development/gi, 
+      replacement: '⚙️ **Controller and Service Layer Development**'
+    },
+    // Code generation patterns
+    { 
+      pattern: /Code Generation/gi, 
+      replacement: '💻 **Code Generation**'
+    },
+    { 
+      pattern: /Code generation/gi, 
+      replacement: '💻 **Code Generation**'
+    },
+    // Code analysis patterns
+    { 
+      pattern: /Code Analysis and Optimization/gi, 
+      replacement: '🔍 **Code Analysis and Optimization**'
+    },
+    { 
+      pattern: /Code analysis and optimization/gi, 
+      replacement: '🔍 **Code Analysis and Optimization**'
+    },
+    // Testing patterns
+    { 
+      pattern: /Testing and Quality Assurance/gi, 
+      replacement: '🧪 **Testing and Quality Assurance**'
+    },
+    { 
+      pattern: /Testing and quality assurance/gi, 
+      replacement: '🧪 **Testing and Quality Assurance**'
+    },
+    // Configuration patterns
+    { 
+      pattern: /Spring Boot Configuration/gi, 
+      replacement: '⚙️ **Spring Boot Configuration**'
+    },
+    { 
+      pattern: /Spring Boot configuration/gi, 
+      replacement: '⚙️ **Spring Boot Configuration**'
     },
     // Tool usage patterns
     { 
       pattern: /I can use the `([^`]+)` tool to ([^.]*)/gi, 
       replacement: '🛠️ **Tool:** `$1`\n\n📋 **Action:** $2'
     },
-    // I can help/create patterns
+    // I can help/create patterns - More comprehensive
     { 
       pattern: /I can help you ([^.]*)/gi, 
       replacement: '💡 **I can help you:** $1'
+    },
+    { 
+      pattern: /I can help you with ([^.]*)/gi, 
+      replacement: '💡 **I can help you with:** $1'
     },
     { 
       pattern: /I can create ([^.]*)/gi, 
@@ -303,6 +404,26 @@ export const enhanceStructuredContent = (text) => {
     { 
       pattern: /I can set up ([^.]*)/gi, 
       replacement: '⚙️ **I can set up:** $1'
+    },
+    { 
+      pattern: /I can build ([^.]*)/gi, 
+      replacement: '🏗️ **I can build:** $1'
+    },
+    { 
+      pattern: /I can develop ([^.]*)/gi, 
+      replacement: '💻 **I can develop:** $1'
+    },
+    { 
+      pattern: /I can analyze ([^.]*)/gi, 
+      replacement: '🔍 **I can analyze:** $1'
+    },
+    { 
+      pattern: /I can test ([^.]*)/gi, 
+      replacement: '🧪 **I can test:** $1'
+    },
+    { 
+      pattern: /I can configure ([^.]*)/gi, 
+      replacement: '⚙️ **I can configure:** $1'
     },
     // Analysis results
     { 
