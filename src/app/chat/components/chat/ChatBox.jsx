@@ -11,6 +11,7 @@ import ChatList from "../ChatList";
 import ConversationHistory from "../ConversationHistory";
 import ChatStatistics from "../ChatStatistics";
 import MCPDashboard from "../MCPDashboard";
+import TextEnhancer from "../TextEnhancer";
 
 const themes = {
   dark: {
@@ -758,7 +759,10 @@ export default function ChatBoxMcp() {
                             </span>
                           </div>
                         ) : (
-                          <div className="break-words">{msg.text}</div>
+                          <TextEnhancer 
+                            message={msg.text}
+                            themeColors={colors}
+                          />
                         )}
                       </div>
                     </div>
