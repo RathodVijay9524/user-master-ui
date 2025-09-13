@@ -10,6 +10,7 @@ import UserProfileIntegration from "../UserProfileIntegration";
 import ChatList from "../ChatList";
 import ConversationHistory from "../ConversationHistory";
 import ChatStatistics from "../ChatStatistics";
+import MCPDashboard from "../MCPDashboard";
 
 const themes = {
   dark: {
@@ -64,6 +65,7 @@ export default function ChatBoxMcp() {
   const [showChatList, setShowChatList] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showChatStats, setShowChatStats] = useState(false);
+  const [showMCPDashboard, setShowMCPDashboard] = useState(false);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -363,6 +365,23 @@ export default function ChatBoxMcp() {
                 📊 Stats
               </button>
             </div>
+            
+            {/* MCP Dashboard Button */}
+            <button
+              onClick={() => {
+                setShowMCPDashboard(true);
+                setMobileSidebarOpen(false);
+              }}
+              className="w-full py-2 px-3 rounded-lg text-xs hover:opacity-80 transition-all duration-200 flex items-center justify-center mt-2"
+              style={{
+                backgroundColor: colors.bubble,
+                color: colors.text,
+                border: `1px solid ${colors.border}`
+              }}
+              title="MCP Server Management"
+            >
+              🔧 MCP Dashboard
+            </button>
           </div>
         )}
 
@@ -898,6 +917,7 @@ export default function ChatBoxMcp() {
 
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} theme={colors} />}
       {showUserProfile && <UserProfileIntegration onClose={() => setShowUserProfile(false)} theme={colors} />}
+      {showMCPDashboard && <MCPDashboard onClose={() => setShowMCPDashboard(false)} theme={colors} />}
       
       {/* Chat List Modal */}
       {showChatList && (

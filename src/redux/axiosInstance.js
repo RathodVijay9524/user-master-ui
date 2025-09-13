@@ -5,7 +5,7 @@ const checkDevServer = async () => {
   try {
     const response = await axios.get('http://localhost:9091/api/health', {
       timeout: 2000, // 2 second timeout
-    });
+    }); 
     return response.status === 200;
   } catch (error) {
     console.log('Development server not available, falling back to production');
