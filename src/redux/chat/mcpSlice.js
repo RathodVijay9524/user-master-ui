@@ -72,9 +72,16 @@ export const fetchServerTools = createAsyncThunk(
       // Check if we already have tools for this server and avoid duplicate calls
       const state = getState();
       const existingTools = state.mcp.serverTools[serverId];
+      
+      // Skip if we already have tools and they're not stale (less than 30 seconds old)
       if (existingTools && existingTools.count > 0 && !existingTools.error) {
-        console.log(`⚠️ Redux: Server ${serverId} already has ${existingTools.count} tools, skipping fetch to avoid duplicates`);
-        return { serverId, data: { tools: existingTools.tools, count: existingTools.count, serverName: existingTools.serverName, cached: true } };
+        const cacheAge = existingTools.timestamp ? Date.now() - existingTools.timestamp : 0;
+        if (cacheAge < 30000) { // 30 seconds cache
+          console.log(`⚠️ Redux: Server ${serverId} already has ${existingTools.count} tools (cache age: ${cacheAge}ms), skipping fetch to avoid duplicates`);
+          return { serverId, data: { tools: existingTools.tools, count: existingTools.count, serverName: existingTools.serverName, cached: true } };
+        } else {
+          console.log(`🔄 Redux: Server ${serverId} tools are stale (${cacheAge}ms old), refreshing...`);
+        }
       }
       
       // Add shorter timeout to prevent hanging
@@ -91,7 +98,7 @@ export const fetchServerTools = createAsyncThunk(
       
       console.log(`✅ Redux: Tools fetched for server ${serverId}:`, data);
       
-      return { serverId, data };
+      return { serverId, data, timestamp: Date.now() };
     } catch (error) {
       console.error(`❌ Redux: Failed to fetch tools for server ${serverId}:`, error);
       return rejectWithValue({ serverId, error: error.message || 'Failed to fetch server tools' });
@@ -242,7 +249,7 @@ const mcpSlice = createSlice({
       })
       .addCase(fetchServerTools.fulfilled, (state, action) => {
         state.loading.serverTools = false;
-        const { serverId, data } = action.payload;
+        const { serverId, data, timestamp } = action.payload;
         
         console.log(`✅ Redux: Processing server tools for ${serverId}:`, data);
         
@@ -256,6 +263,7 @@ const mcpSlice = createSlice({
             count: data.count || data.tools.length,
             serverName: data.serverName || state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
             cached: data.cached,
+            timestamp: timestamp || Date.now(),
             error: null
           };
           console.log(`✅ Redux: Successfully loaded ${data.count || data.tools.length} tools for server ${serverId}`);
@@ -267,7 +275,8 @@ const mcpSlice = createSlice({
             count: 0,
             serverName: state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
             error: data.error,
-            cached: data.cached
+            cached: data.cached,
+            timestamp: Date.now()
           };
         } else {
           // No tools found
@@ -277,7 +286,8 @@ const mcpSlice = createSlice({
             count: 0,
             serverName: state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
             error: 'No tools found',
-            cached: data?.cached
+            cached: data?.cached,
+            timestamp: Date.now()
           };
         }
       })

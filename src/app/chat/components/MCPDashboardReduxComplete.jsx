@@ -41,6 +41,7 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
     enabled: true,
     configuration: {}
   });
+  const [lastServerClickTime, setLastServerClickTime] = useState(0);
   
   // Redux selectors
   const servers = useSelector(selectMCPServers);
@@ -81,17 +82,30 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
   }, [dispatch, servers, serverTools]);
 
   const handleServerSelect = (server) => {
+    const now = Date.now();
+    const timeSinceLastClick = now - lastServerClickTime;
+    
+    // Debounce rapid clicks (less than 1 second apart)
+    if (timeSinceLastClick < 1000) {
+      console.log(`⏳ Debouncing server selection for ${server.name} (${timeSinceLastClick}ms since last click)`);
+      return;
+    }
+    
+    setLastServerClickTime(now);
     console.log(`🔍 Selecting server: ${server.name} (${server.id})`);
     dispatch(setSelectedServer(server));
     // Automatically switch to Tools tab to show server tools
     setActiveTab('tools');
     
-    // Ensure tools are fetched for this server
-    if (!serverTools[server.id] || serverTools[server.id].count === 0) {
+    // Only fetch tools if we don't have them AND they're not currently loading
+    const serverToolData = serverTools[server.id];
+    if (!serverToolData || (serverToolData.count === 0 && !serverToolData.loading)) {
       console.log(`🔄 Fetching tools for selected server: ${server.name}`);
       dispatch(fetchServerTools(server.id));
+    } else if (serverToolData.loading) {
+      console.log(`⏳ Server ${server.name} tools are already being fetched...`);
     } else {
-      console.log(`✅ Server ${server.name} already has ${serverTools[server.id].count} tools`);
+      console.log(`✅ Server ${server.name} already has ${serverToolData.count} tools`);
     }
   };
 
