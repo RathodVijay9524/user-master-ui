@@ -145,6 +145,19 @@ export const mcpApi = {
     }
   },
 
+  // Get server status
+  getServerStatus: async (serverId) => {
+    try {
+      console.log(`🔍 MCP API - Checking status for server ${serverId} from:`, api.defaults.baseURL + `/mcp-servers/${serverId}/status`);
+      const response = await api.get(`/mcp-servers/${serverId}/status`);
+      console.log(`✅ MCP API - Server ${serverId} status response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ MCP API - Error checking server status for ${serverId}:`, error);
+      throw error;
+    }
+  },
+
 };
 
 export default mcpApi;

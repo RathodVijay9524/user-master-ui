@@ -8,7 +8,7 @@ const initialState = {
   serverTools: {}, // { serverId: { tools: [], count: 0, serverName: '' } }
   injectionStatus: null,
   selectedServer: null,
-  showAllTools: false,
+  showAllTools: true,
   showAddServerModal: false,
   loading: {
     servers: false,
@@ -31,9 +31,25 @@ export const fetchMCPServers = createAsyncThunk(
   'mcp/fetchServers',
   async (_, { rejectWithValue }) => {
     try {
-      const servers = await mcpApi.getServers();
+      console.log('🔄 Redux: Fetching MCP servers...');
+      const response = await mcpApi.getServers();
+      
+      // Handle different response structures
+      let servers;
+      if (Array.isArray(response)) {
+        // Direct array response
+        servers = response;
+      } else if (response && Array.isArray(response.servers)) {
+        // Object with nested servers array
+        servers = response.servers;
+        console.log('✅ Redux: Loaded', servers.length, 'servers');
+      } else {
+        console.warn('⚠️ Redux: Unexpected response structure:', response);
+        servers = [];
+      }
       return servers;
     } catch (error) {
+      console.error('❌ Redux: fetchMCPServers failed:', error);
       return rejectWithValue(error.message || 'Failed to fetch MCP servers');
     }
   }
@@ -43,9 +59,22 @@ export const fetchMCPTools = createAsyncThunk(
   'mcp/fetchTools',
   async (_, { rejectWithValue }) => {
     try {
-      const tools = await mcpApi.getTools();
+      const response = await mcpApi.getTools();
+      
+      // Handle different response structures
+      let tools;
+      if (Array.isArray(response)) {
+        // Direct array response
+        tools = response;
+      } else if (response && Array.isArray(response.tools)) {
+        // Object with nested tools array
+        tools = response.tools;
+      } else {
+        tools = [];
+      }
       return tools;
     } catch (error) {
+      console.error('❌ Redux: fetchMCPTools failed:', error);
       return rejectWithValue(error.message || 'Failed to fetch MCP tools');
     }
   }
@@ -59,6 +88,20 @@ export const fetchInjectionStatus = createAsyncThunk(
       return status;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch injection status');
+    }
+  }
+);
+
+export const checkServerStatus = createAsyncThunk(
+  'mcp/checkServerStatus',
+  async (serverId, { rejectWithValue }) => {
+    try {
+      console.log(`🔍 Redux: Checking status for server ${serverId}`);
+      const statusData = await mcpApi.getServerStatus(serverId);
+      return { serverId, status: statusData.status };
+    } catch (error) {
+      console.error(`❌ Redux: Failed to check server status for ${serverId}:`, error);
+      return rejectWithValue({ serverId, error: error.message || 'Failed to check server status' });
     }
   }
 );
@@ -82,6 +125,28 @@ export const fetchServerTools = createAsyncThunk(
         } else {
           console.log(`🔄 Redux: Server ${serverId} tools are stale (${cacheAge}ms old), refreshing...`);
         }
+      }
+      
+      // First check if server is running before trying to get tools
+      console.log(`🔍 Redux: Checking server status before fetching tools for ${serverId}`);
+      try {
+        const statusData = await mcpApi.getServerStatus(serverId);
+        if (statusData.status !== 'RUNNING') {
+          console.log(`⚠️ Redux: Server ${serverId} is not running (status: ${statusData.status}), skipping tools fetch`);
+          return { 
+            serverId, 
+            data: { 
+              tools: [], 
+              count: 0, 
+              serverName: '', 
+              error: `Server is ${statusData.status.toLowerCase()}`,
+              cached: false 
+            }, 
+            timestamp: Date.now() 
+          };
+        }
+      } catch (statusError) {
+        console.log(`⚠️ Redux: Could not check server status for ${serverId}, proceeding with tools fetch`);
       }
       
       // Add shorter timeout to prevent hanging
@@ -113,6 +178,17 @@ export const startMCPServer = createAsyncThunk(
       console.log(`🔄 Redux: Starting server ${serverId}`);
       const response = await mcpApi.startServer(serverId);
       console.log(`✅ Redux: Server ${serverId} started:`, response);
+      
+      // Wait a moment for server to start, then check status
+      setTimeout(async () => {
+        try {
+          const statusData = await mcpApi.getServerStatus(serverId);
+          console.log(`🔍 Redux: Server ${serverId} status after start:`, statusData.status);
+        } catch (error) {
+          console.log(`⚠️ Redux: Could not check status after starting server ${serverId}`);
+        }
+      }, 2000);
+      
       return { serverId, response };
     } catch (error) {
       console.error(`❌ Redux: Failed to start server ${serverId}:`, error);
@@ -128,7 +204,11 @@ export const stopMCPServer = createAsyncThunk(
       console.log(`🔄 Redux: Stopping server ${serverId}`);
       const response = await mcpApi.stopServer(serverId);
       console.log(`✅ Redux: Server ${serverId} stopped:`, response);
-      return { serverId, response };
+      
+      // Clear tools for stopped server to prevent polling
+      console.log(`🧹 Redux: Clearing tools for stopped server ${serverId}`);
+      
+      return { serverId, response, clearTools: true };
     } catch (error) {
       console.error(`❌ Redux: Failed to stop server ${serverId}:`, error);
       return rejectWithValue({ serverId, error: error.message || 'Failed to stop server' });
@@ -221,7 +301,7 @@ const mcpSlice = createSlice({
       })
       .addCase(fetchMCPTools.fulfilled, (state, action) => {
         state.loading.tools = false;
-        state.tools = action.payload.tools || [];
+        state.tools = action.payload || [];
       })
       .addCase(fetchMCPTools.rejected, (state, action) => {
         state.loading.tools = false;
@@ -355,7 +435,9 @@ const mcpSlice = createSlice({
             tools: [],
             count: 0,
             serverName: state.serverTools[serverId].serverName,
-            error: 'Server stopped'
+            error: 'Server stopped',
+            timestamp: Date.now(),
+            cached: false
           };
         }
       })
@@ -381,6 +463,21 @@ const mcpSlice = createSlice({
       .addCase(addMCPServer.rejected, (state, action) => {
         state.loading.addServer = false;
         state.errors.addServer = action.payload;
+      })
+      
+      // Check server status
+      .addCase(checkServerStatus.fulfilled, (state, action) => {
+        const { serverId, status } = action.payload;
+        // Update server status in the servers array if it exists
+        const server = state.servers.find(s => s.id === serverId);
+        if (server) {
+          server.status = status;
+        }
+        console.log(`✅ Redux: Updated server ${serverId} status to ${status}`);
+      })
+      .addCase(checkServerStatus.rejected, (state, action) => {
+        const { serverId, error } = action.payload;
+        console.log(`❌ Redux: Failed to check status for server ${serverId}:`, error);
       });
   },
 });
@@ -414,9 +511,9 @@ export const selectFilteredTools = (state) => {
   const { showAllTools, selectedServer, serverTools, tools } = state.mcp;
   
   if (showAllTools) {
-    const serverToolsList = Object.values(serverTools).flatMap(serverTool => serverTool.tools || []);
-    // If no server tools available, fallback to general tools
-    return serverToolsList.length > 0 ? serverToolsList : tools;
+    // When showing all tools, prioritize the general tools endpoint (146 tools)
+    // This gives us the complete set of all available tools
+    return tools;
   }
   
   if (selectedServer && serverTools[selectedServer.id]) {

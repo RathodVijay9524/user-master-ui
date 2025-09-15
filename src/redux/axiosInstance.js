@@ -83,13 +83,16 @@ axiosInstance.interceptors.response.use(
 // Function to initialize the axios instance with the correct base URL
 export const initializeAxiosInstance = async () => {
   try {
+    console.log('🚀 Initializing axios instance...');
     const baseURL = await getBaseURL();
     axiosInstance.defaults.baseURL = baseURL;
-    console.log(`Axios instance initialized with base URL: ${baseURL}`);
+    console.log(`✅ Axios instance initialized with base URL: ${baseURL}`);
+    console.log(`🔍 JWT Token available: ${!!localStorage.getItem('jwtToken')}`);
   } catch (error) {
-    console.error('Failed to initialize axios instance:', error);
+    console.error('❌ Failed to initialize axios instance:', error);
     // Fallback to production
     axiosInstance.defaults.baseURL = 'https://api.codewithvijay.online/api';
+    console.log(`⚠️ Fallback to production URL: ${axiosInstance.defaults.baseURL}`);
   }
 };
 

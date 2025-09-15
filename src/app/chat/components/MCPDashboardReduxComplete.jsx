@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
+import axiosInstance from '../../../redux/axiosInstance';
 import {
   selectMCPServers,
   selectMCPTools,
@@ -18,6 +19,7 @@ import {
   fetchMCPTools,
   fetchInjectionStatus,
   fetchServerTools,
+  checkServerStatus,
   startMCPServer,
   stopMCPServer,
   addMCPServer,
@@ -55,59 +57,58 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
   const filteredTools = useSelector(selectFilteredTools);
   const showAddServerModal = useSelector(selectShowAddServerModal);
 
-  // Fetch initial data
-  useEffect(() => {
-    if (isOpen) {
-      console.log('🚀 MCP Dashboard opened, fetching initial data...');
-      dispatch(fetchMCPServers());
-      dispatch(fetchMCPTools());
-      dispatch(fetchInjectionStatus());
-    }
-  }, [dispatch, isOpen]);
+  // Safety checks to ensure arrays
+  const safeServers = Array.isArray(servers) ? servers : [];
+  const safeTools = Array.isArray(tools) ? tools : [];
+  
+  
 
-  // Fetch server tools when servers are loaded (only once)
-  useEffect(() => {
-    if (servers.length > 0) {
-      console.log('🚀 Fetching tools for servers:', servers.map(s => s.name));
-      servers.forEach(server => {
-        // Only fetch if we don't already have tools for this server
-        if (!serverTools[server.id] || serverTools[server.id].count === 0) {
-          console.log(`🔄 Fetching tools for server: ${server.name} (${server.id})`);
-          dispatch(fetchServerTools(server.id));
-        } else {
-          console.log(`✅ Server ${server.name} already has ${serverTools[server.id].count} tools, skipping fetch`);
-        }
-      });
-    }
-  }, [dispatch, servers, serverTools]);
+          // Fetch initial data
+          useEffect(() => {
+            if (isOpen) {
+              dispatch(fetchMCPServers());
+              dispatch(fetchMCPTools());
+              dispatch(fetchInjectionStatus());
+            }
+          }, [dispatch, isOpen]);
 
-  const handleServerSelect = (server) => {
-    const now = Date.now();
-    const timeSinceLastClick = now - lastServerClickTime;
-    
-    // Debounce rapid clicks (less than 1 second apart)
-    if (timeSinceLastClick < 1000) {
-      console.log(`⏳ Debouncing server selection for ${server.name} (${timeSinceLastClick}ms since last click)`);
-      return;
-    }
-    
-    setLastServerClickTime(now);
-    console.log(`🔍 Selecting server: ${server.name} (${server.id})`);
-    dispatch(setSelectedServer(server));
-    // Automatically switch to Tools tab to show server tools
-    setActiveTab('tools');
-    
-    // Only fetch tools if we don't have them AND they're not currently loading
-    const serverToolData = serverTools[server.id];
-    if (!serverToolData || (serverToolData.count === 0 && !serverToolData.loading)) {
-      console.log(`🔄 Fetching tools for selected server: ${server.name}`);
-      dispatch(fetchServerTools(server.id));
-    } else if (serverToolData.loading) {
-      console.log(`⏳ Server ${server.name} tools are already being fetched...`);
-    } else {
-      console.log(`✅ Server ${server.name} already has ${serverToolData.count} tools`);
-    }
-  };
+          // Fetch server tools when servers are loaded (only for running servers)
+          useEffect(() => {
+            if (safeServers.length > 0) {
+              safeServers.forEach(server => {
+                // Only fetch tools for running servers
+                if (server.status === 'running' || server.status === 'RUNNING') {
+                  // Only fetch if we don't already have tools for this server
+                  if (!serverTools[server.id] || serverTools[server.id].count === 0) {
+                    dispatch(fetchServerTools(server.id));
+                  }
+                }
+              });
+            }
+          }, [dispatch, safeServers, serverTools]);
+
+          const handleServerSelect = (server) => {
+            const now = Date.now();
+            const timeSinceLastClick = now - lastServerClickTime;
+            
+            // Debounce rapid clicks (less than 1 second apart)
+            if (timeSinceLastClick < 1000) {
+              return;
+            }
+            
+            setLastServerClickTime(now);
+            dispatch(setSelectedServer(server));
+            // Automatically switch to Tools tab to show server tools
+            setActiveTab('tools');
+            
+            // Only fetch tools for running servers
+            if (server.status === 'running' || server.status === 'RUNNING') {
+              const serverToolData = serverTools[server.id];
+              if (!serverToolData || (serverToolData.count === 0 && !serverToolData.loading)) {
+                dispatch(fetchServerTools(server.id));
+              }
+            }
+          };
 
   const handleShowAllTools = () => {
     dispatch(toggleShowAllTools());
@@ -120,6 +121,17 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
       dispatch(stopMCPServer(serverId));
     }
   };
+
+          const handleRefreshAll = () => {
+            dispatch(fetchMCPServers());
+            dispatch(fetchMCPTools());
+            dispatch(fetchInjectionStatus());
+            
+            // Check status for all servers
+            safeServers.forEach(server => {
+              dispatch(checkServerStatus(server.id));
+            });
+          };
 
   const getServerStatusIcon = (server) => {
     const status = selectServerStatus({ mcp: { injectionStatus, serverTools } }, server);
@@ -304,22 +316,19 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xl font-semibold flex items-center">
                         <span className="mr-2">🖥️</span>
-                        Active Servers ({servers.length})
+                        Active Servers ({safeServers.length})
                       </h3>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            dispatch(fetchMCPServers());
-                            dispatch(fetchMCPTools());
-                            dispatch(fetchInjectionStatus());
-                          }}
-                          className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                        >
-                          🔄 Refresh
-                        </button>
-                      </div>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={handleRefreshAll}
+                                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                                >
+                                  🔄 Refresh All
+                                </button>
+                              </div>
                     </div>
                     
+
                     {/* Error Display */}
                     {errors.servers && (
                       <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -355,7 +364,7 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-200">
-                                {servers.map((server, index) => (
+                                {safeServers.map((server, index) => (
                                   <motion.tr
                                     key={server.id}
                                     initial={{ opacity: 0, y: 20 }}
@@ -398,17 +407,16 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                                           <>
                                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                                             <span className="text-sm text-gray-500">Loading...</span>
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                console.log(`⚡ Quick refresh for ${server.name}`);
-                                                dispatch(refreshServerTools(server.id));
-                                                dispatch(fetchServerTools(server.id));
-                                              }}
-                                              className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
-                                            >
-                                              Quick Refresh
-                                            </button>
+                                                    <button
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        dispatch(refreshServerTools(server.id));
+                                                        dispatch(fetchServerTools(server.id));
+                                                      }}
+                                                      className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+                                                    >
+                                                      Quick Refresh
+                                                    </button>
                                           </>
                                         ) : (
                                           <>
@@ -676,7 +684,7 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                           <h3 className="text-lg font-semibold flex items-center">
                             <span className="mr-2">🛠️</span>
                             {showAllTools 
-                              ? `All Tools (${Object.keys(serverTools).length} servers)` 
+                              ? `All Tools (${safeServers.length} servers)` 
                               : (selectedServer ? `${selectedServer.name} Tools` : 'Available Tools')
                             } ({filteredTools.length})
                           </h3>
@@ -689,15 +697,18 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                                 🌐 Show All Tools
                               </button>
                             )}
-                            <button
-                              onClick={() => {
-                                dispatch(fetchMCPTools());
-                                servers.forEach(server => dispatch(fetchServerTools(server.id)));
-                              }}
-                              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                            >
-                              🔄 Refresh
-                            </button>
+                                    <button
+                                      onClick={() => {
+                                        dispatch(fetchMCPTools());
+                                        // Only refresh tools for running servers
+                                        safeServers
+                                          .filter(server => server.status === 'running' || server.status === 'RUNNING')
+                                          .forEach(server => dispatch(fetchServerTools(server.id)));
+                                      }}
+                                      className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                                    >
+                                      🔄 Refresh Tools
+                                    </button>
                           </div>
                         </div>
                       </div>
@@ -763,8 +774,12 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                       <div className="p-4 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-blue-50 rounded-lg p-4">
-                            <div className="text-2xl font-bold text-blue-600">{tools.length}</div>
-                            <div className="text-sm text-blue-700">Total Tools</div>
+                            <div className="text-2xl font-bold text-blue-600">
+                              {showAllTools ? filteredTools.length : safeTools.length}
+                            </div>
+                            <div className="text-sm text-blue-700">
+                              {showAllTools ? 'All Tools' : 'Total Tools'}
+                            </div>
                           </div>
                           <div className="bg-green-50 rounded-lg p-4">
                             <div className="text-2xl font-bold text-green-600">{filteredTools.length}</div>
@@ -772,11 +787,11 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                           </div>
                         </div>
                         
-                        {servers.length > 0 && (
+                        {safeServers.length > 0 && (
                           <div>
                             <h4 className="font-medium text-gray-900 mb-3">Server Tools Breakdown</h4>
                             <div className="space-y-2">
-                              {servers.map(server => (
+                              {safeServers.map(server => (
                                 <div key={server.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                   <span className="text-sm font-medium">{server.name}</span>
                                   <span className="text-sm text-gray-600">
@@ -821,7 +836,11 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-blue-100 text-sm">Total Tools</p>
-                            <p className="text-2xl font-bold">{tools.length}</p>
+                            <p className="text-2xl font-bold">
+                              {injectionStatus?.availableTools || 
+                               (injectionStatus?.staticTools || 0) + (injectionStatus?.dynamicTools || 0) || 
+                               safeTools.length}
+                            </p>
                           </div>
                           <div className="text-3xl opacity-80">🛠️</div>
                         </div>
@@ -873,7 +892,9 @@ const MCPDashboardReduxComplete = ({ isOpen, onClose }) => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-orange-100 text-sm">Active Servers</p>
-                            <p className="text-2xl font-bold">{servers.length}</p>
+                            <p className="text-2xl font-bold">
+                              {injectionStatus?.activeServers || safeServers.length}
+                            </p>
                           </div>
                           <div className="text-3xl opacity-80">🖥️</div>
                         </div>
