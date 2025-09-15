@@ -9,17 +9,20 @@ const initialState = {
   injectionStatus: null,
   selectedServer: null,
   showAllTools: false,
+  showAddServerModal: false,
   loading: {
     servers: false,
     tools: false,
     serverTools: false,
     injection: false,
+    addServer: false,
   },
   errors: {
     servers: null,
     tools: null,
     serverTools: null,
     injection: null,
+    addServer: null,
   },
 };
 
@@ -126,6 +129,21 @@ export const stopMCPServer = createAsyncThunk(
   }
 );
 
+export const addMCPServer = createAsyncThunk(
+  'mcp/addServer',
+  async (serverData, { rejectWithValue }) => {
+    try {
+      console.log(`🔄 Redux: Adding new server:`, serverData);
+      const response = await mcpApi.addServer(serverData);
+      console.log(`✅ Redux: Server added successfully:`, response);
+      return response;
+    } catch (error) {
+      console.error(`❌ Redux: Failed to add server:`, error);
+      return rejectWithValue(error.message || 'Failed to add server');
+    }
+  }
+);
+
 // MCP slice
 const mcpSlice = createSlice({
   name: 'mcp',
@@ -166,6 +184,11 @@ const mcpSlice = createSlice({
         };
       }
       state.loading.serverTools = true;
+    },
+    
+    // Show/hide add server modal
+    setShowAddServerModal: (state, action) => {
+      state.showAddServerModal = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -332,6 +355,22 @@ const mcpSlice = createSlice({
         if (server) {
           server.status = 'running';
         }
+      })
+      
+      // Add server
+      .addCase(addMCPServer.pending, (state) => {
+        state.loading.addServer = true;
+        state.errors.addServer = null;
+      })
+      .addCase(addMCPServer.fulfilled, (state, action) => {
+        state.loading.addServer = false;
+        state.showAddServerModal = false;
+        // Refresh servers list after adding
+        state.loading.servers = true;
+      })
+      .addCase(addMCPServer.rejected, (state, action) => {
+        state.loading.addServer = false;
+        state.errors.addServer = action.payload;
       });
   },
 });
@@ -343,6 +382,7 @@ export const {
   clearSelectedServer,
   clearErrors,
   refreshServerTools,
+  setShowAddServerModal,
 } = mcpSlice.actions;
 
 // Export reducer
@@ -357,6 +397,7 @@ export const selectSelectedServer = (state) => state.mcp.selectedServer;
 export const selectShowAllTools = (state) => state.mcp.showAllTools;
 export const selectMCPLoading = (state) => state.mcp.loading;
 export const selectMCPErrors = (state) => state.mcp.errors;
+export const selectShowAddServerModal = (state) => state.mcp.showAddServerModal;
 
 // Computed selectors
 export const selectFilteredTools = (state) => {
