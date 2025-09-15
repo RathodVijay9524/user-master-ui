@@ -10,7 +10,7 @@ import UserProfileIntegration from "../UserProfileIntegration";
 import ChatList from "../ChatList";
 import ConversationHistory from "../ConversationHistory";
 import ChatStatistics from "../ChatStatistics";
-import MCPDashboard from "../MCPDashboard";
+import MCPDashboardReduxComplete from "../MCPDashboardReduxComplete";
 import TextEnhancer from "../TextEnhancer";
 
 const themes = {
@@ -398,6 +398,7 @@ export default function ChatBoxMcp() {
             >
               🔧 MCP Dashboard
             </button>
+            
           </div>
         )}
 
@@ -943,7 +944,8 @@ export default function ChatBoxMcp() {
 
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} theme={colors} />}
       {showUserProfile && <UserProfileIntegration onClose={() => setShowUserProfile(false)} theme={colors} />}
-      {showMCPDashboard && <MCPDashboard onClose={() => setShowMCPDashboard(false)} theme={colors} />}
+      {showMCPDashboard && <MCPDashboardReduxComplete isOpen={showMCPDashboard} onClose={() => setShowMCPDashboard(false)} />}
+      
       
       {/* Chat List Modal */}
       {showChatList && (

@@ -1,20 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { mcpApi } from '../../app/chat/services/mcpApi';
 
 // Initial state
 const initialState = {
   servers: [],
   tools: [],
-  monitoring: {
-    cpuUsage: 45,
-    memoryUsage: 67,
-    activeTools: 16,
-    uptime: 0,
-    latency: 0
-  },
-  isLoading: false,
-  error: null,
+  serverTools: {}, // { serverId: { tools: [], count: 0, serverName: '' } }
+  injectionStatus: null,
   selectedServer: null,
-  showDashboard: false
+  showAllTools: false,
+  loading: {
+    servers: false,
+    tools: false,
+    serverTools: false,
+    injection: false,
+  },
+  errors: {
+    servers: null,
+    tools: null,
+    serverTools: null,
+    injection: null,
+  },
 };
 
 // Async thunks
@@ -22,14 +28,10 @@ export const fetchMCPServers = createAsyncThunk(
   'mcp/fetchServers',
   async (_, { rejectWithValue }) => {
     try {
-      // Simulate API call - replace with actual API
-      const response = await fetch('/api/mcp/servers');
-      if (!response.ok) {
-        throw new Error('Failed to fetch MCP servers');
-      }
-      return await response.json();
+      const servers = await mcpApi.getServers();
+      return servers;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch MCP servers');
     }
   }
 );
@@ -38,13 +40,58 @@ export const fetchMCPTools = createAsyncThunk(
   'mcp/fetchTools',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch('/api/mcp/tools');
-      if (!response.ok) {
-        throw new Error('Failed to fetch MCP tools');
-      }
-      return await response.json();
+      const tools = await mcpApi.getTools();
+      return tools;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch MCP tools');
+    }
+  }
+);
+
+export const fetchInjectionStatus = createAsyncThunk(
+  'mcp/fetchInjectionStatus',
+  async (_, { rejectWithValue }) => {
+    try {
+      const status = await mcpApi.getInjectionStatus();
+      return status;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch injection status');
+    }
+  }
+);
+
+export const fetchServerTools = createAsyncThunk(
+  'mcp/fetchServerTools',
+  async (serverId, { rejectWithValue, getState }) => {
+    try {
+      console.log(`🔄 Redux: Fetching tools for server ${serverId}`);
+      
+      // Check if we already have tools for this server and avoid duplicate calls
+      const state = getState();
+      const existingTools = state.mcp.serverTools[serverId];
+      if (existingTools && existingTools.count > 0 && !existingTools.error) {
+        console.log(`⚠️ Redux: Server ${serverId} already has ${existingTools.count} tools, skipping fetch to avoid duplicates`);
+        return { serverId, data: { tools: existingTools.tools, count: existingTools.count, serverName: existingTools.serverName, cached: true } };
+      }
+      
+      // Add shorter timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Frontend timeout: Request took longer than 10 seconds')), 10000)
+      );
+      
+      // Skip cache refresh for faster loading - just get tools directly
+      console.log(`⚡ Fast fetch: Getting tools directly for ${serverId} (no cache refresh)`);
+      const toolsPromise = mcpApi.getServerTools(serverId);
+      
+      // Race between tools fetch and timeout
+      const data = await Promise.race([toolsPromise, timeoutPromise]);
+      
+      console.log(`✅ Redux: Tools fetched for server ${serverId}:`, data);
+      
+      return { serverId, data };
+    } catch (error) {
+      console.error(`❌ Redux: Failed to fetch tools for server ${serverId}:`, error);
+      return rejectWithValue({ serverId, error: error.message || 'Failed to fetch server tools' });
     }
   }
 );
@@ -53,15 +100,13 @@ export const startMCPServer = createAsyncThunk(
   'mcp/startServer',
   async (serverId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/mcp/servers/${serverId}/start`, {
-        method: 'POST'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to start MCP server');
-      }
-      return await response.json();
+      console.log(`🔄 Redux: Starting server ${serverId}`);
+      const response = await mcpApi.startServer(serverId);
+      console.log(`✅ Redux: Server ${serverId} started:`, response);
+      return { serverId, response };
     } catch (error) {
-      return rejectWithValue(error.message);
+      console.error(`❌ Redux: Failed to start server ${serverId}:`, error);
+      return rejectWithValue({ serverId, error: error.message || 'Failed to start server' });
     }
   }
 );
@@ -70,68 +115,13 @@ export const stopMCPServer = createAsyncThunk(
   'mcp/stopServer',
   async (serverId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/mcp/servers/${serverId}/stop`, {
-        method: 'POST'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to stop MCP server');
-      }
-      return await response.json();
+      console.log(`🔄 Redux: Stopping server ${serverId}`);
+      const response = await mcpApi.stopServer(serverId);
+      console.log(`✅ Redux: Server ${serverId} stopped:`, response);
+      return { serverId, response };
     } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const addMCPServer = createAsyncThunk(
-  'mcp/addServer',
-  async (serverData, { rejectWithValue }) => {
-    try {
-      const response = await fetch('/api/mcp/servers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(serverData)
-      });
-      if (!response.ok) {
-        throw new Error('Failed to add MCP server');
-      }
-      return await response.json();
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const removeMCPServer = createAsyncThunk(
-  'mcp/removeServer',
-  async (serverId, { rejectWithValue }) => {
-    try {
-      const response = await fetch(`/api/mcp/servers/${serverId}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to remove MCP server');
-      }
-      return serverId;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchMCPMonitoring = createAsyncThunk(
-  'mcp/fetchMonitoring',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await fetch('/api/mcp/monitoring');
-      if (!response.ok) {
-        throw new Error('Failed to fetch monitoring data');
-      }
-      return await response.json();
-    } catch (error) {
-      return rejectWithValue(error.message);
+      console.error(`❌ Redux: Failed to stop server ${serverId}:`, error);
+      return rejectWithValue({ serverId, error: error.message || 'Failed to stop server' });
     }
   }
 );
@@ -141,180 +131,218 @@ const mcpSlice = createSlice({
   name: 'mcp',
   initialState,
   reducers: {
-    // Show/hide dashboard
-    toggleDashboard: (state) => {
-      state.showDashboard = !state.showDashboard;
-    },
-    showDashboard: (state) => {
-      state.showDashboard = true;
-    },
-    hideDashboard: (state) => {
-      state.showDashboard = false;
-    },
-    
-    // Select server
-    selectServer: (state, action) => {
+    // Set selected server
+    setSelectedServer: (state, action) => {
       state.selectedServer = action.payload;
     },
     
-    // Clear error
-    clearError: (state) => {
-      state.error = null;
+    // Toggle show all tools
+    toggleShowAllTools: (state) => {
+      state.showAllTools = !state.showAllTools;
     },
     
-    // Update monitoring data (for real-time updates)
-    updateMonitoring: (state, action) => {
-      state.monitoring = { ...state.monitoring, ...action.payload };
+    // Clear selected server
+    clearSelectedServer: (state) => {
+      state.selectedServer = null;
     },
     
-    // Add server locally (optimistic update)
-    addServerLocally: (state, action) => {
-      const newServer = {
-        id: Date.now(),
-        ...action.payload,
-        status: 'stopped',
-        health: 0,
-        uptime: '0m',
-        latency: 0,
-        toolsCount: 0
+    // Clear errors
+    clearErrors: (state) => {
+      state.errors = {
+        servers: null,
+        tools: null,
+        serverTools: null,
+        injection: null,
       };
-      state.servers.push(newServer);
     },
     
-    // Update server status locally
-    updateServerStatus: (state, action) => {
-      const { serverId, status, health, uptime, latency } = action.payload;
-      const server = state.servers.find(s => s.id === serverId);
-      if (server) {
-        server.status = status;
-        if (health !== undefined) server.health = health;
-        if (uptime !== undefined) server.uptime = uptime;
-        if (latency !== undefined) server.latency = latency;
+    // Manual refresh server tools
+    refreshServerTools: (state, action) => {
+      const serverId = action.payload;
+      if (state.serverTools[serverId]) {
+        state.serverTools[serverId] = {
+          ...state.serverTools[serverId],
+          error: null
+        };
       }
+      state.loading.serverTools = true;
     },
-    
-    // Remove server locally
-    removeServerLocally: (state, action) => {
-      state.servers = state.servers.filter(s => s.id !== action.payload);
-    },
-    
-    // Update tools
-    updateTools: (state, action) => {
-      state.tools = action.payload;
-    }
   },
   extraReducers: (builder) => {
     builder
       // Fetch servers
       .addCase(fetchMCPServers.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
+        state.loading.servers = true;
+        state.errors.servers = null;
       })
       .addCase(fetchMCPServers.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.loading.servers = false;
         state.servers = action.payload;
       })
       .addCase(fetchMCPServers.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
+        state.loading.servers = false;
+        state.errors.servers = action.payload;
       })
       
       // Fetch tools
       .addCase(fetchMCPTools.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
+        state.loading.tools = true;
+        state.errors.tools = null;
       })
       .addCase(fetchMCPTools.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.tools = action.payload;
+        state.loading.tools = false;
+        state.tools = action.payload.tools || [];
       })
       .addCase(fetchMCPTools.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
+        state.loading.tools = false;
+        state.errors.tools = action.payload;
+      })
+      
+      // Fetch injection status
+      .addCase(fetchInjectionStatus.pending, (state) => {
+        state.loading.injection = true;
+        state.errors.injection = null;
+      })
+      .addCase(fetchInjectionStatus.fulfilled, (state, action) => {
+        state.loading.injection = false;
+        state.injectionStatus = action.payload;
+      })
+      .addCase(fetchInjectionStatus.rejected, (state, action) => {
+        state.loading.injection = false;
+        state.errors.injection = action.payload;
+      })
+      
+      // Fetch server tools
+      .addCase(fetchServerTools.pending, (state) => {
+        state.loading.serverTools = true;
+        state.errors.serverTools = null;
+      })
+      .addCase(fetchServerTools.fulfilled, (state, action) => {
+        state.loading.serverTools = false;
+        const { serverId, data } = action.payload;
+        
+        console.log(`✅ Redux: Processing server tools for ${serverId}:`, data);
+        
+        if (data && data.tools && data.tools.length > 0) {
+          state.serverTools[serverId] = {
+            tools: data.tools.map(tool => ({
+              ...tool,
+              serverId,
+              serverName: data.serverName || state.servers.find(s => s.id === serverId)?.name || 'Unknown Server'
+            })),
+            count: data.count || data.tools.length,
+            serverName: data.serverName || state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
+            cached: data.cached,
+            error: null
+          };
+          console.log(`✅ Redux: Successfully loaded ${data.count || data.tools.length} tools for server ${serverId}`);
+        } else if (data && data.error) {
+          // Handle timeout or error cases
+          console.log(`❌ Redux: Server ${serverId} returned error:`, data.error);
+          state.serverTools[serverId] = {
+            tools: [],
+            count: 0,
+            serverName: state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
+            error: data.error,
+            cached: data.cached
+          };
+        } else {
+          // No tools found
+          console.log(`⚠️ Redux: No tools found for server ${serverId}`);
+          state.serverTools[serverId] = {
+            tools: [],
+            count: 0,
+            serverName: state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
+            error: 'No tools found',
+            cached: data?.cached
+          };
+        }
+      })
+      .addCase(fetchServerTools.rejected, (state, action) => {
+        state.loading.serverTools = false;
+        const { serverId, error } = action.payload;
+        state.errors.serverTools = error;
+        
+        // Set empty data for failed server
+        state.serverTools[serverId] = {
+          tools: [],
+          count: 0,
+          serverName: state.servers.find(s => s.id === serverId)?.name || 'Unknown Server',
+          error
+        };
+        
+        console.log(`❌ Redux: Server tools fetch failed for ${serverId}:`, error);
       })
       
       // Start server
       .addCase(startMCPServer.pending, (state, action) => {
+        // Update server status optimistically
         const server = state.servers.find(s => s.id === action.meta.arg);
         if (server) {
           server.status = 'starting';
         }
       })
       .addCase(startMCPServer.fulfilled, (state, action) => {
-        const server = state.servers.find(s => s.id === action.meta.arg);
+        const { serverId } = action.payload;
+        const server = state.servers.find(s => s.id === serverId);
         if (server) {
           server.status = 'running';
-          server.health = action.payload.health || 85;
-          server.uptime = '0m';
-          server.latency = action.payload.latency || 0;
+        }
+        // Refresh server tools after starting
+        if (serverId) {
+          // Trigger a refetch of server tools
+          state.loading.serverTools = true;
         }
       })
       .addCase(startMCPServer.rejected, (state, action) => {
-        const server = state.servers.find(s => s.id === action.meta.arg);
+        const { serverId } = action.payload;
+        const server = state.servers.find(s => s.id === serverId);
         if (server) {
           server.status = 'stopped';
         }
-        state.error = action.payload;
       })
       
       // Stop server
       .addCase(stopMCPServer.pending, (state, action) => {
+        // Update server status optimistically
         const server = state.servers.find(s => s.id === action.meta.arg);
         if (server) {
           server.status = 'stopping';
         }
       })
       .addCase(stopMCPServer.fulfilled, (state, action) => {
-        const server = state.servers.find(s => s.id === action.meta.arg);
+        const { serverId } = action.payload;
+        const server = state.servers.find(s => s.id === serverId);
         if (server) {
           server.status = 'stopped';
-          server.health = 0;
-          server.uptime = '0m';
-          server.latency = 0;
+        }
+        // Clear server tools after stopping
+        if (serverId && state.serverTools[serverId]) {
+          state.serverTools[serverId] = {
+            tools: [],
+            count: 0,
+            serverName: state.serverTools[serverId].serverName,
+            error: 'Server stopped'
+          };
         }
       })
       .addCase(stopMCPServer.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      
-      // Add server
-      .addCase(addMCPServer.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(addMCPServer.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.servers.push(action.payload);
-      })
-      .addCase(addMCPServer.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-      
-      // Remove server
-      .addCase(removeMCPServer.fulfilled, (state, action) => {
-        state.servers = state.servers.filter(s => s.id !== action.payload);
-      })
-      
-      // Fetch monitoring
-      .addCase(fetchMCPMonitoring.fulfilled, (state, action) => {
-        state.monitoring = { ...state.monitoring, ...action.payload };
+        const { serverId } = action.payload;
+        const server = state.servers.find(s => s.id === serverId);
+        if (server) {
+          server.status = 'running';
+        }
       });
-  }
+  },
 });
 
 // Export actions
 export const {
-  toggleDashboard,
-  showDashboard,
-  hideDashboard,
-  selectServer,
-  clearError,
-  updateMonitoring,
-  addServerLocally,
-  updateServerStatus,
-  removeServerLocally,
-  updateTools
+  setSelectedServer,
+  toggleShowAllTools,
+  clearSelectedServer,
+  clearErrors,
+  refreshServerTools,
 } = mcpSlice.actions;
 
 // Export reducer
@@ -323,8 +351,61 @@ export default mcpSlice.reducer;
 // Selectors
 export const selectMCPServers = (state) => state.mcp.servers;
 export const selectMCPTools = (state) => state.mcp.tools;
-export const selectMCPMonitoring = (state) => state.mcp.monitoring;
-export const selectMCPDashboard = (state) => state.mcp.showDashboard;
-export const selectSelectedMCPServer = (state) => state.mcp.selectedServer;
-export const selectMCPLoading = (state) => state.mcp.isLoading;
-export const selectMCPError = (state) => state.mcp.error;
+export const selectServerTools = (state) => state.mcp.serverTools;
+export const selectInjectionStatus = (state) => state.mcp.injectionStatus;
+export const selectSelectedServer = (state) => state.mcp.selectedServer;
+export const selectShowAllTools = (state) => state.mcp.showAllTools;
+export const selectMCPLoading = (state) => state.mcp.loading;
+export const selectMCPErrors = (state) => state.mcp.errors;
+
+// Computed selectors
+export const selectFilteredTools = (state) => {
+  const { showAllTools, selectedServer, serverTools, tools } = state.mcp;
+  
+  if (showAllTools) {
+    const serverToolsList = Object.values(serverTools).flatMap(serverTool => serverTool.tools || []);
+    // If no server tools available, fallback to general tools
+    return serverToolsList.length > 0 ? serverToolsList : tools;
+  }
+  
+  if (selectedServer && serverTools[selectedServer.id]) {
+    const serverToolsList = serverTools[selectedServer.id].tools || [];
+    // If no server-specific tools, fallback to general tools
+    return serverToolsList.length > 0 ? serverToolsList : tools;
+  }
+  
+  return tools; // Fallback to general tools
+};
+
+export const selectToolsCountForServer = (state, serverId) => {
+  const serverTools = state.mcp.serverTools[serverId];
+  if (serverTools) {
+    return serverTools.count || serverTools.tools?.length || 0;
+  }
+  return 0;
+};
+
+export const selectServerStatus = (state, server) => {
+  // If server has explicit status, use it
+  if (server.status) return server.status;
+  
+  // Check injection status for this server
+  const injectionStatus = state.mcp.injectionStatus;
+  if (injectionStatus?.serverStatus && injectionStatus.serverStatus[server.id] === true) {
+    return 'running';
+  }
+  
+  // Check if server has tools - if it has tools, it's likely running
+  const serverTools = state.mcp.serverTools[server.id];
+  if (serverTools && serverTools.count > 0) {
+    return 'running';
+  }
+  
+  // If server is enabled but has no tools, it might be stopped
+  if (server.enabled) {
+    return 'stopped';
+  }
+  
+  // Default to stopped
+  return 'stopped';
+};

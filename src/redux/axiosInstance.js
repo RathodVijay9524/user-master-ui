@@ -8,8 +8,10 @@ const checkDevServer = async () => {
     }); 
     return response.status === 200;
   } catch (error) {
-    console.log('Development server not available, falling back to production');
-    return false;
+    console.log('Development server health check failed, but will still try to use it for MCP endpoints');
+    // Always return true to force using local development server
+    // This ensures MCP endpoints are tried on localhost first
+    return true;
   }
 };
 
@@ -47,10 +49,19 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
+    // Check if this is an MCP endpoint request
+    const isMCPEndpoint = error.config?.url?.includes('mcp-servers') || error.config?.url?.includes('mcp/');
+    
     // If development server is not available, switch to production
     if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
       const currentBaseURL = axiosInstance.defaults.baseURL;
       if (currentBaseURL.includes('localhost')) {
+        // For MCP endpoints, don't fallback to production - they don't exist there
+        if (isMCPEndpoint) {
+          console.log('MCP endpoints not available on development server - you need to implement them on your backend');
+          return Promise.reject(new Error('MCP endpoints not implemented on backend. Please implement the following endpoints on your backend: GET /api/mcp-servers, POST /api/mcp-servers, etc.'));
+        }
+        
         console.log('Development server unavailable, switching to production API');
         axiosInstance.defaults.baseURL = 'https://api.codewithvijay.online/api';
         
