@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
-import { setProvider } from "../../../../redux/chat/settingsSlice";
+import { setProvider, fetchProviders, fetchModelsForProvider, fixCorruptedModels } from "../../../../redux/chat/settingsSlice";
 import { getUserImage } from "../../../../redux/userSlice";
 import axiosInstance from "../../../../redux/axiosInstance";
+import userSettingsService from "../../../../redux/chat/userSettingsService";
+import userChatService from "../../../../redux/chat/userChatService";
 import SettingsModal from "../SettingsModal";
 import UserProfileIntegration from "../UserProfileIntegration";
 import ChatList from "../ChatList";
@@ -87,13 +89,67 @@ export default function ChatBoxMcp() {
     const providerSettings = state.settings.providers[selectedProvider] || {};
     
     // Debug logging
-    console.log('ChatBox - Selected Provider:', selectedProvider);
-    console.log('ChatBox - Provider Settings:', providerSettings);
-    console.log('ChatBox - User Auth:', { user: user?.id || user?.userId, token: token ? 'present' : 'missing' });
+    console.log('🔍 ChatBox - Selected Provider:', selectedProvider);
+    console.log('🔍 ChatBox - Provider Settings:', providerSettings);
+    console.log('🔍 ChatBox - Model from settings:', providerSettings.model, 'Type:', typeof providerSettings.model, 'IsArray:', Array.isArray(providerSettings.model));
+    console.log('🔍 ChatBox - Available Models:', providerSettings.availableModels, 'Type:', typeof providerSettings.availableModels, 'IsArray:', Array.isArray(providerSettings.availableModels));
+    console.log('🔍 ChatBox - User Auth:', { user: user?.id || user?.userId, token: token ? 'present' : 'missing' });
+    
+    // Check if model and availableModels are the same (which would indicate a bug)
+    if (JSON.stringify(providerSettings.model) === JSON.stringify(providerSettings.availableModels)) {
+      console.error('🚨 BUG DETECTED: Model and AvailableModels are the same!', {
+        model: providerSettings.model,
+        availableModels: providerSettings.availableModels
+      });
+    }
+    
+          let selectedModel = providerSettings.model || 'gpt-4';
+          
+          // CRITICAL FIX: Handle stringified arrays
+          if (typeof selectedModel === 'string' && selectedModel.startsWith('[') && selectedModel.endsWith(']')) {
+            try {
+              const parsedArray = JSON.parse(selectedModel);
+              if (Array.isArray(parsedArray)) {
+                console.error('🚨 CRITICAL: Model is a stringified array! Parsing and taking first element:', parsedArray);
+                selectedModel = parsedArray[0] || 'gpt-4';
+                
+                // Also update the availableModels if it contains the stringified array
+                if (providerSettings.availableModels && providerSettings.availableModels.length === 1) {
+                  const firstAvailableModel = providerSettings.availableModels[0];
+                  if (typeof firstAvailableModel === 'string' && firstAvailableModel.startsWith('[')) {
+                    try {
+                      const parsedAvailableModels = JSON.parse(firstAvailableModel);
+                      if (Array.isArray(parsedAvailableModels)) {
+                        console.log('🔧 Also fixing availableModels in ChatBox:', parsedAvailableModels);
+                        providerSettings.availableModels = parsedAvailableModels;
+                      }
+                    } catch (e) {
+                      console.error('🚨 Failed to parse availableModels:', e);
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              console.error('🚨 Failed to parse stringified array:', e);
+              selectedModel = 'gpt-4';
+            }
+          }
+          
+          // Force fix: if model is an array, take the first element
+          if (Array.isArray(selectedModel)) {
+            console.warn('🚨 ChatBox - Model is array, forcing to first element:', selectedModel);
+            selectedModel = selectedModel[0] || 'gpt-4';
+          }
+          
+          // Ensure it's a string
+          if (typeof selectedModel !== 'string') {
+            console.warn('🚨 ChatBox - Model is not string, forcing to default:', selectedModel);
+            selectedModel = 'gpt-4';
+          }
     
     return { 
       provider: selectedProvider,
-      model: providerSettings.model || 'gpt-4',
+      model: selectedModel,
       apiKey: providerSettings.apiKey || '',
       baseUrl: providerSettings.baseUrl || '',
       temperature: providerSettings.temperature || 0.7,
@@ -111,6 +167,53 @@ export default function ChatBoxMcp() {
   useEffect(() => {
     localStorage.setItem("chatTheme", theme);
   }, [theme]);
+
+  // Initialize user-specific services when user changes
+  useEffect(() => {
+    if (user?.id) {
+      console.log('🔐 Initializing user-specific services for user:', user.id);
+      
+      // Initialize user settings service
+      userSettingsService.setCurrentUser(user.id);
+      userSettingsService.initializeUserSettings(user.id);
+      
+      // Initialize user chat service
+      userChatService.setCurrentUser(user.id);
+      userChatService.initializeUserChat(user.id);
+      
+      // Load user-specific settings and apply to Redux
+      const userSettings = userSettingsService.loadUserSettings(user.id);
+      if (userSettings) {
+        // Set user-specific provider
+        if (userSettings.selectedProvider) {
+          dispatch(setProvider(userSettings.selectedProvider));
+        }
+      }
+      
+      // Fetch providers and models from backend to get latest available models
+      console.log('🔄 Fetching providers and models from backend...');
+      dispatch(fetchProviders());
+      
+      // Clear corrupted settings if needed (for debugging)
+      userSettingsService.clearCorruptedSettings();
+      
+      // Fix corrupted models in Redux state
+      dispatch(fixCorruptedModels());
+      
+    } else {
+      console.log('🔓 Clearing user-specific services (no user)');
+      userSettingsService.clearCurrentUser();
+      userChatService.clearCurrentUser();
+    }
+  }, [user, dispatch]);
+
+  // Fetch models for selected provider when provider changes
+  useEffect(() => {
+    if (provider && provider !== 'ollama') {
+      console.log(`🔄 Fetching models for selected provider: ${provider}`);
+      dispatch(fetchModelsForProvider(provider));
+    }
+  }, [provider, dispatch]);
 
   // Fetch user image
   useEffect(() => {
@@ -232,7 +335,17 @@ export default function ChatBoxMcp() {
     }
     
     // Debug logging
-    console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
+    console.log('🔍 Sending message with:', { 
+      provider, 
+      model, 
+      modelType: typeof model, 
+      modelIsArray: Array.isArray(model),
+      apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'empty',
+      baseUrl, 
+      temperature, 
+      maxTokens, 
+      input 
+    });
     console.log('API Key details:', {
       provider,
       apiKey,
@@ -243,11 +356,18 @@ export default function ChatBoxMcp() {
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
     
+    // Ensure model is a string, not an array
+    let selectedModel = model || 'gpt-4';
+    if (Array.isArray(selectedModel)) {
+      console.warn('⚠️ Model is an array, taking first element:', selectedModel);
+      selectedModel = selectedModel[0] || 'gpt-4';
+    }
+    
     // Send message to backend for AI response
     dispatch(sendMessage({ 
       message: input, 
       provider: provider || 'openai',
-      model: model || 'gpt-4',
+      model: selectedModel,
       apiKey: apiKey || '',
       baseUrl: baseUrl || '',
       temperature: temperature || 0.7,

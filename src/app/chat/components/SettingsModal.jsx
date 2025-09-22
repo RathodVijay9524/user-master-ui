@@ -471,7 +471,7 @@ export default function SettingsModal({ onClose, theme }) {
                   Select Model
                 </label>
                 <select
-                  value={model}
+                  value={Array.isArray(model) ? model[0] || '' : model || ''}
                   onChange={(e) => dispatch(setModel(e.target.value))}
                   className="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   style={{ 

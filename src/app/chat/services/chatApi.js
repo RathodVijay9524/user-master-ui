@@ -12,9 +12,18 @@ export const chatApi = {
 
   // Send a chat message
   sendMessage: async (request) => {
-    console.log('chatApi.sendMessage - Sending to backend:', request);
+    console.log('🔍 chatApi.sendMessage - Sending to backend:', request);
+    console.log('🔍 chatApi.sendMessage - Model in request:', request.model, 'Type:', typeof request.model, 'IsArray:', Array.isArray(request.model));
+    
+    // CRITICAL CHECK: Ensure model is never an array
+    if (Array.isArray(request.model)) {
+      console.error('🚨 CRITICAL ERROR: chatApi received array model! Fixing:', request.model);
+      request.model = request.model[0] || 'gpt-4';
+      console.log('✅ chatApi - Fixed model to:', request.model);
+    }
+    
     const response = await api.post('/chat/message', request);
-    console.log('chatApi.sendMessage - Backend response:', response.data);
+    console.log('🔍 chatApi.sendMessage - Backend response:', response.data);
     return response.data;
   },
 
