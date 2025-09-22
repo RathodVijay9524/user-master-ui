@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
+import { sendChat, clear, resetConversationId, sendMessage, loadUserMessages, saveUserMessages, clearUserMessages } from "../../../../redux/chat/chatSlice";
 import { setProvider } from "../../../../redux/chat/settingsSlice";
 import SettingsModal from "../SettingsModal";
 
@@ -52,6 +52,7 @@ export default function ChatBoxMcp() {
   const [progress, setProgress] = useState({});
 
   const { messages, isLoading: loading, error } = useSelector((state) => state.chat);
+  const { user } = useSelector((state) => state.auth);
   const { provider, model, apiKey, baseUrl, temperature, maxTokens } = useSelector((state) => {
     const selectedProvider = state.settings.selectedProvider;
     const providerSettings = state.settings.providers[selectedProvider] || {};
@@ -80,6 +81,22 @@ export default function ChatBoxMcp() {
   useEffect(() => {
     localStorage.setItem("chatTheme", theme);
   }, [theme]);
+
+  // Load user-specific messages when user changes
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(loadUserMessages({ userId: user.id }));
+    } else {
+      dispatch(clearUserMessages({ userId: null }));
+    }
+  }, [user, dispatch]);
+
+  // Save messages to user-specific storage whenever messages change
+  useEffect(() => {
+    if (user?.id && messages.length > 0) {
+      dispatch(saveUserMessages({ userId: user.id }));
+    }
+  }, [messages, user?.id, dispatch]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });

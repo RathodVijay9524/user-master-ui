@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
 import { setProvider, fetchProviders, fetchModelsForProvider, fixCorruptedModels } from "../../../../redux/chat/settingsSlice";
+import { loadUserMessages, saveUserMessages, clearUserMessages } from "../../../../redux/chat/chatSlice";
 import { getUserImage } from "../../../../redux/userSlice";
 import axiosInstance from "../../../../redux/axiosInstance";
 import userSettingsService from "../../../../redux/chat/userSettingsService";
@@ -200,12 +201,25 @@ export default function ChatBoxMcp() {
       // Fix corrupted models in Redux state
       dispatch(fixCorruptedModels());
       
+      // Load user-specific chat messages
+      dispatch(loadUserMessages({ userId: user.id }));
+      
     } else {
       console.log('🔓 Clearing user-specific services (no user)');
       userSettingsService.clearCurrentUser();
       userChatService.clearCurrentUser();
+      
+      // Clear messages when user logs out
+      dispatch(clearUserMessages({ userId: null }));
     }
   }, [user, dispatch]);
+
+  // Save messages to user-specific storage whenever messages change
+  useEffect(() => {
+    if (user?.id && messages.length > 0) {
+      dispatch(saveUserMessages({ userId: user.id }));
+    }
+  }, [messages, user?.id, dispatch]);
 
   // Fetch models for selected provider when provider changes
   useEffect(() => {
