@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { sendChat, clear, resetConversationId, sendMessage } from "../../../../redux/chat/chatSlice";
 import { setProvider, fetchProviders, fetchModelsForProvider, fixCorruptedModels } from "../../../../redux/chat/settingsSlice";
+import { loadUserMessages, saveUserMessages, clearUserMessages } from "../../../../redux/chat/chatSlice";
 import { getUserImage } from "../../../../redux/userSlice";
 import axiosInstance from "../../../../redux/axiosInstance";
 import userSettingsService from "../../../../redux/chat/userSettingsService";
@@ -111,7 +112,7 @@ export default function ChatBoxMcp() {
               const parsedArray = JSON.parse(selectedModel);
               if (Array.isArray(parsedArray)) {
                 console.error('🚨 CRITICAL: Model is a stringified array! Parsing and taking first element:', parsedArray);
-                selectedModel = parsedArray[0] || 'gpt-4';
+                selectedModel = parsedArray[0] || '';
                 
                 // Also update the availableModels if it contains the stringified array
                 if (providerSettings.availableModels && providerSettings.availableModels.length === 1) {
@@ -131,20 +132,20 @@ export default function ChatBoxMcp() {
               }
             } catch (e) {
               console.error('🚨 Failed to parse stringified array:', e);
-              selectedModel = 'gpt-4';
+              selectedModel = '';
             }
           }
           
           // Force fix: if model is an array, take the first element
           if (Array.isArray(selectedModel)) {
             console.warn('🚨 ChatBox - Model is array, forcing to first element:', selectedModel);
-            selectedModel = selectedModel[0] || 'gpt-4';
+            selectedModel = selectedModel[0] || '';
           }
           
           // Ensure it's a string
           if (typeof selectedModel !== 'string') {
             console.warn('🚨 ChatBox - Model is not string, forcing to default:', selectedModel);
-            selectedModel = 'gpt-4';
+            selectedModel = '';
           }
     
     return { 
@@ -200,12 +201,25 @@ export default function ChatBoxMcp() {
       // Fix corrupted models in Redux state
       dispatch(fixCorruptedModels());
       
+      // Load user-specific chat messages
+      dispatch(loadUserMessages({ userId: user.id }));
+      
     } else {
       console.log('🔓 Clearing user-specific services (no user)');
       userSettingsService.clearCurrentUser();
       userChatService.clearCurrentUser();
+      
+      // Clear messages when user logs out
+      dispatch(clearUserMessages({ userId: null }));
     }
   }, [user, dispatch]);
+
+  // Save messages to user-specific storage whenever messages change
+  useEffect(() => {
+    if (user?.id && messages.length > 0) {
+      dispatch(saveUserMessages({ userId: user.id }));
+    }
+  }, [messages, user?.id, dispatch]);
 
   // Fetch models for selected provider when provider changes
   useEffect(() => {
@@ -357,10 +371,10 @@ export default function ChatBoxMcp() {
     dispatch(sendChat({ message: input }));
     
     // Ensure model is a string, not an array
-    let selectedModel = model || 'gpt-4';
+    let selectedModel = model || '';
     if (Array.isArray(selectedModel)) {
       console.warn('⚠️ Model is an array, taking first element:', selectedModel);
-      selectedModel = selectedModel[0] || 'gpt-4';
+      selectedModel = selectedModel[0] || '';
     }
     
     // Send message to backend for AI response

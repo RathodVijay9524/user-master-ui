@@ -33,9 +33,9 @@ const initialState = {
     // Groq
     groq: {
       apiKey: '',
-      model: 'llama3-70b-8192',
+      model: 'llama-3.1-8b-instant',
       baseUrl: 'https://api.groq.com/openai/v1',
-      availableModels: ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
+      availableModels: ['llama-3.1-8b-instant', 'llama-3.1-70b-versatile', 'llama-3.1-405b-preview', 'mixtral-8x7b-32768', 'gemma-7b-it', 'claude-3-sonnet-20240229', 'llama-2-70b-4096', 'llama-2-7b-2048'],
       temperature: 0.7,
       maxTokens: 1000,
       displayName: 'Groq',
@@ -159,21 +159,21 @@ const settingsSlice = createSlice({
           const parsedArray = JSON.parse(safePayload);
           if (Array.isArray(parsedArray)) {
             console.error(`🚨 CRITICAL: setModel received stringified array! Parsing and taking first element:`, parsedArray);
-            safePayload = parsedArray[0] || 'gpt-4';
+            safePayload = parsedArray[0] || '';
           }
         } catch (e) {
           console.error(`🚨 Failed to parse stringified array in setModel:`, e);
-          safePayload = 'gpt-4';
+          safePayload = '';
         }
       }
       
       if (Array.isArray(safePayload)) {
         console.warn('🚨 setModel received array payload, taking first element:', safePayload);
-        safePayload = safePayload[0] || 'gpt-4';
+        safePayload = safePayload[0] || '';
       }
       if (typeof safePayload !== 'string') {
         console.warn('🚨 setModel received non-string payload, using default:', safePayload);
-        safePayload = 'gpt-4';
+        safePayload = '';
       }
       
       if (state.providers[provider]) {
@@ -264,7 +264,7 @@ const settingsSlice = createSlice({
       state.providers = {
         claude: { apiKey: '', model: 'claude-3-sonnet-20240229', baseUrl: 'https://api.anthropic.com', availableModels: [], temperature: 0.7, maxTokens: 1000, displayName: 'Anthropic Claude', description: 'Anthropic Claude models', isAvailable: false, status: 'inactive' },
         gemini: { apiKey: '', model: 'gemini-1.5-flash', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', availableModels: [], temperature: 0.7, maxTokens: 1000, displayName: 'Google Gemini', description: 'Google Gemini models', isAvailable: false, status: 'inactive' },
-        groq: { apiKey: '', model: 'llama3-70b-8192', baseUrl: 'https://api.groq.com/openai/v1', availableModels: ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it'], temperature: 0.7, maxTokens: 1000, displayName: 'Groq', description: 'Groq models', isAvailable: false, status: 'inactive' },
+        groq: { apiKey: '', model: 'llama-3.1-8b-instant', baseUrl: 'https://api.groq.com/openai/v1', availableModels: ['llama-3.1-8b-instant', 'llama-3.1-70b-versatile', 'llama-3.1-405b-preview', 'mixtral-8x7b-32768', 'gemma-7b-it', 'claude-3-sonnet-20240229', 'llama-2-70b-4096', 'llama-2-7b-2048'], temperature: 0.7, maxTokens: 1000, displayName: 'Groq', description: 'Groq models', isAvailable: false, status: 'inactive' },
         huggingface: { apiKey: '', model: 'microsoft/DialoGPT-medium', baseUrl: 'https://api-inference.huggingface.co/models', availableModels: [], temperature: 0.7, maxTokens: 1000, displayName: 'Hugging Face', description: 'Hugging Face models', isAvailable: false, status: 'inactive' },
         ollama: { apiKey: '', model: 'qwen2.5-coder:7b', baseUrl: 'http://localhost:11434', availableModels: [], temperature: 0.7, maxTokens: 1000, displayName: 'Ollama', description: 'Ollama models', isAvailable: false, status: 'inactive' },
         openai: { apiKey: '', model: 'gpt-4', baseUrl: 'https://api.openai.com/v1', availableModels: [], temperature: 0.7, maxTokens: 1000, displayName: 'OpenAI', description: 'OpenAI models', isAvailable: false, status: 'inactive' },
@@ -284,23 +284,23 @@ const settingsSlice = createSlice({
               const parsedArray = JSON.parse(providerSettings.model);
               if (Array.isArray(parsedArray)) {
                 console.error(`🚨 CRITICAL: ${provider} model is a stringified array! Parsing and taking first element:`, parsedArray);
-                providerSettings.model = parsedArray[0] || 'gpt-4';
+                providerSettings.model = parsedArray[0] || '';
               }
             } catch (e) {
               console.error(`🚨 Failed to parse stringified array for ${provider}:`, e);
-              providerSettings.model = 'gpt-4';
+              providerSettings.model = '';
             }
           }
           
           if (Array.isArray(providerSettings.model)) {
             console.warn(`🚨 Found array model for ${provider}, fixing:`, providerSettings.model);
-            providerSettings.model = providerSettings.model[0] || 'gpt-4';
+            providerSettings.model = providerSettings.model[0] || '';
           }
           
           // Ensure model is always a string
           if (typeof providerSettings.model !== 'string') {
             console.warn(`🚨 Model for ${provider} is not string, resetting:`, providerSettings.model);
-            providerSettings.model = 'gpt-4';
+            providerSettings.model = '';
           }
         }
       });
@@ -353,12 +353,12 @@ const settingsSlice = createSlice({
               // CRITICAL FIX: Ensure selectedModel is a string, not an array
               if (Array.isArray(selectedModel)) {
                 console.error(`🚨 CRITICAL: availableModels[0] is an array in fetchProviders! Taking first element:`, selectedModel);
-                selectedModel = selectedModel[0] || 'gpt-4';
+                selectedModel = selectedModel[0] || '';
               }
               
               if (typeof selectedModel !== 'string') {
                 console.error(`🚨 CRITICAL: selectedModel is not a string in fetchProviders! Using default:`, selectedModel);
-                selectedModel = 'gpt-4';
+                selectedModel = '';
               }
               
               state.providers[provider.name].model = selectedModel;
@@ -419,12 +419,12 @@ const settingsSlice = createSlice({
               // CRITICAL FIX: Ensure selectedModel is a string, not an array
               if (Array.isArray(selectedModel)) {
                 console.error(`🚨 CRITICAL: availableModels[0] is an array! Taking first element:`, selectedModel);
-                selectedModel = selectedModel[0] || 'gpt-4';
+                selectedModel = selectedModel[0] || '';
               }
               
               if (typeof selectedModel !== 'string') {
                 console.error(`🚨 CRITICAL: selectedModel is not a string! Using default:`, selectedModel);
-                selectedModel = 'gpt-4';
+                selectedModel = '';
               }
               
               state.providers[providerName].model = selectedModel;

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { chatApi } from '../../app/chat/services/chatApi';
 import { enhanceTextWithCleanMCP } from '../../app/chat/utils/mcpResponseCleaner';
+import { userChatService } from './userChatService';
 
 // Initial state
 const initialState = {
@@ -42,11 +43,11 @@ export const sendMessage = createAsyncThunk(
       
       if (Array.isArray(safeModel)) {
         console.error('🚨 CRITICAL: Model is still an array! Taking first element:', safeModel);
-        safeModel = safeModel[0] || 'gpt-4';
+        safeModel = safeModel[0] || '';
       }
       if (!safeModel || typeof safeModel !== 'string') {
-        console.error('🚨 CRITICAL: Model is invalid! Using default:', safeModel);
-        safeModel = 'gpt-4';
+        console.error('🚨 CRITICAL: Model is invalid! Sending empty model:', safeModel);
+        safeModel = '';
       }
       
       console.log('✅ sendMessage - Safe model determined:', safeModel, 'Type:', typeof safeModel);
@@ -177,6 +178,47 @@ const chatSlice = createSlice({
     // Add message manually (for testing)
     addMessage: (state, action) => {
       state.messages.push(action.payload);
+    },
+    
+    // Load user-specific messages
+    loadUserMessages: (state, action) => {
+      const { userId } = action.payload;
+      if (userId) {
+        // Set current user in service
+        userChatService.setCurrentUser(userId);
+        // Load messages
+        const userMessages = userChatService.loadUserChatMessages();
+        state.messages = userMessages || [];
+        console.log(`📱 Loaded ${state.messages.length} messages for user ${userId}`);
+      }
+    },
+    
+    // Save user-specific messages
+    saveUserMessages: (state, action) => {
+      const { userId } = action.payload;
+      if (userId && state.messages.length > 0) {
+        // Set current user in service
+        userChatService.setCurrentUser(userId);
+        // Save messages
+        userChatService.saveUserChatMessages(state.messages);
+        console.log(`💾 Saved ${state.messages.length} messages for user ${userId}`);
+      }
+    },
+    
+    // Clear user-specific messages
+    clearUserMessages: (state, action) => {
+      const { userId } = action.payload;
+      if (userId) {
+        // Set current user in service
+        userChatService.setCurrentUser(userId);
+        // Clear messages
+        userChatService.clearUserChatMessages();
+        state.messages = [];
+        console.log(`🗑️ Cleared messages for user ${userId}`);
+      } else {
+        // Clear all messages if no userId provided
+        state.messages = [];
+      }
     },
     
     // Remove message
@@ -314,6 +356,9 @@ export const {
   resetConversationId,
   loadConversationMessages,
   sendChat,
+  loadUserMessages,
+  saveUserMessages,
+  clearUserMessages,
 } = chatSlice.actions;
 
 // Export reducer

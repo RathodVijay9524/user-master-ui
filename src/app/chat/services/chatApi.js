@@ -18,7 +18,7 @@ export const chatApi = {
     // CRITICAL CHECK: Ensure model is never an array
     if (Array.isArray(request.model)) {
       console.error('🚨 CRITICAL ERROR: chatApi received array model! Fixing:', request.model);
-      request.model = request.model[0] || 'gpt-4';
+      request.model = request.model[0] || '';
       console.log('✅ chatApi - Fixed model to:', request.model);
     }
     
