@@ -138,16 +138,33 @@ export default function ChatBoxMcp() {
     if (!input.trim()) return;
     
     // Debug logging
-    console.log('Sending message with:', { provider, model, apiKey, baseUrl, temperature, maxTokens, input });
+    console.log('🔍 Normal - Sending message with:', { 
+      provider, 
+      model, 
+      modelType: typeof model, 
+      modelIsArray: Array.isArray(model),
+      apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'empty',
+      baseUrl, 
+      temperature, 
+      maxTokens, 
+      input 
+    });
     
     // Add user message to UI immediately
     dispatch(sendChat({ message: input }));
+    
+    // Ensure model is a string, not an array
+    let selectedModel = model || 'gpt-4';
+    if (Array.isArray(selectedModel)) {
+      console.warn('⚠️ Normal - Model is an array, taking first element:', selectedModel);
+      selectedModel = selectedModel[0] || 'gpt-4';
+    }
     
     // Send message to backend for AI response
     dispatch(sendMessage({ 
       message: input, 
       provider: provider || 'openai',
-      model: model || 'gpt-4',
+      model: selectedModel,
       apiKey: apiKey || '',
       baseUrl: baseUrl || '',
       temperature: temperature || 0.7,

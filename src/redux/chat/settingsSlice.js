@@ -149,9 +149,36 @@ const settingsSlice = createSlice({
     setModel: (state, action) => {
       const provider = state.selectedProvider;
       console.log(`setModel called for provider: ${provider}, payload:`, action.payload, 'Type:', typeof action.payload);
+      
+      // Ensure payload is always a string
+      let safePayload = action.payload;
+      
+      // CRITICAL FIX: Handle stringified arrays
+      if (typeof safePayload === 'string' && safePayload.startsWith('[') && safePayload.endsWith(']')) {
+        try {
+          const parsedArray = JSON.parse(safePayload);
+          if (Array.isArray(parsedArray)) {
+            console.error(`🚨 CRITICAL: setModel received stringified array! Parsing and taking first element:`, parsedArray);
+            safePayload = parsedArray[0] || 'gpt-4';
+          }
+        } catch (e) {
+          console.error(`🚨 Failed to parse stringified array in setModel:`, e);
+          safePayload = 'gpt-4';
+        }
+      }
+      
+      if (Array.isArray(safePayload)) {
+        console.warn('🚨 setModel received array payload, taking first element:', safePayload);
+        safePayload = safePayload[0] || 'gpt-4';
+      }
+      if (typeof safePayload !== 'string') {
+        console.warn('🚨 setModel received non-string payload, using default:', safePayload);
+        safePayload = 'gpt-4';
+      }
+      
       if (state.providers[provider]) {
-        state.providers[provider].model = action.payload;
-        console.log(`Model set for ${provider}:`, state.providers[provider].model);
+        state.providers[provider].model = safePayload;
+        console.log(`✅ Model set for ${provider}:`, state.providers[provider].model);
       }
     },
     setModelForProvider: (state, action) => {
@@ -244,6 +271,40 @@ const settingsSlice = createSlice({
         openrouter: { apiKey: '', model: 'openai/gpt-3.5-turbo', baseUrl: 'https://openrouter.ai/api/v1', availableModels: [], temperature: 0.7, maxTokens: 1000, displayName: 'OpenRouter', description: 'OpenRouter models', isAvailable: false, status: 'inactive' },
       };
     },
+    
+    // Fix corrupted models (for debugging)
+    fixCorruptedModels: (state) => {
+      console.log('🔧 Fixing corrupted models in Redux state...');
+      Object.keys(state.providers).forEach(provider => {
+        const providerSettings = state.providers[provider];
+        if (providerSettings) {
+          // CRITICAL FIX: Handle stringified arrays
+          if (typeof providerSettings.model === 'string' && providerSettings.model.startsWith('[') && providerSettings.model.endsWith(']')) {
+            try {
+              const parsedArray = JSON.parse(providerSettings.model);
+              if (Array.isArray(parsedArray)) {
+                console.error(`🚨 CRITICAL: ${provider} model is a stringified array! Parsing and taking first element:`, parsedArray);
+                providerSettings.model = parsedArray[0] || 'gpt-4';
+              }
+            } catch (e) {
+              console.error(`🚨 Failed to parse stringified array for ${provider}:`, e);
+              providerSettings.model = 'gpt-4';
+            }
+          }
+          
+          if (Array.isArray(providerSettings.model)) {
+            console.warn(`🚨 Found array model for ${provider}, fixing:`, providerSettings.model);
+            providerSettings.model = providerSettings.model[0] || 'gpt-4';
+          }
+          
+          // Ensure model is always a string
+          if (typeof providerSettings.model !== 'string') {
+            console.warn(`🚨 Model for ${provider} is not string, resetting:`, providerSettings.model);
+            providerSettings.model = 'gpt-4';
+          }
+        }
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -259,11 +320,50 @@ const settingsSlice = createSlice({
         // Update available models and other properties for each provider
         action.payload.forEach((provider) => {
           if (state.providers[provider.name]) {
-            state.providers[provider.name].availableModels = provider.availableModels;
+            // CRITICAL FIX: Parse stringified arrays in availableModels
+            let processedAvailableModels = provider.availableModels;
+            if (Array.isArray(processedAvailableModels) && processedAvailableModels.length === 1) {
+              const firstElement = processedAvailableModels[0];
+              if (typeof firstElement === 'string' && firstElement.startsWith('[') && firstElement.endsWith(']')) {
+                try {
+                  const parsedModels = JSON.parse(firstElement);
+                  if (Array.isArray(parsedModels)) {
+                    console.log(`🔧 Fixed availableModels for ${provider.name}:`, parsedModels);
+                    processedAvailableModels = parsedModels;
+                  }
+                } catch (e) {
+                  console.error(`🚨 Failed to parse availableModels for ${provider.name}:`, e);
+                }
+              }
+            }
+            
+            state.providers[provider.name].availableModels = processedAvailableModels;
             state.providers[provider.name].displayName = provider.displayName;
             state.providers[provider.name].description = provider.description;
             state.providers[provider.name].isAvailable = provider.isAvailable;
             state.providers[provider.name].status = provider.status;
+            
+            // Auto-select first available model if current model is not in the list
+            const currentModel = state.providers[provider.name].model;
+            const availableModels = provider.availableModels || [];
+            
+            if (availableModels.length > 0 && (!currentModel || !availableModels.includes(currentModel))) {
+              let selectedModel = availableModels[0];
+              
+              // CRITICAL FIX: Ensure selectedModel is a string, not an array
+              if (Array.isArray(selectedModel)) {
+                console.error(`🚨 CRITICAL: availableModels[0] is an array in fetchProviders! Taking first element:`, selectedModel);
+                selectedModel = selectedModel[0] || 'gpt-4';
+              }
+              
+              if (typeof selectedModel !== 'string') {
+                console.error(`🚨 CRITICAL: selectedModel is not a string in fetchProviders! Using default:`, selectedModel);
+                selectedModel = 'gpt-4';
+              }
+              
+              state.providers[provider.name].model = selectedModel;
+              console.log(`✅ Auto-selected first model for ${provider.name}:`, selectedModel, 'Type:', typeof selectedModel);
+            }
           }
         });
       })
@@ -288,8 +388,49 @@ const settingsSlice = createSlice({
             }
           }
           
+          // CRITICAL FIX: Handle nested stringified arrays
+          if (Array.isArray(processedModels) && processedModels.length === 1) {
+            const firstElement = processedModels[0];
+            if (typeof firstElement === 'string' && firstElement.startsWith('[') && firstElement.endsWith(']')) {
+              try {
+                const parsedModels = JSON.parse(firstElement);
+                if (Array.isArray(parsedModels)) {
+                  console.log(`🔧 Fixed nested stringified models for ${providerName}:`, parsedModels);
+                  processedModels = parsedModels;
+                }
+              } catch (e) {
+                console.error(`🚨 Failed to parse nested stringified models for ${providerName}:`, e);
+              }
+            }
+          }
+          
           state.providers[providerName].availableModels = Array.isArray(processedModels) ? processedModels : [];
           console.log('Processed models for', providerName, ':', state.providers[providerName].availableModels);
+          
+          // Auto-select the first available model if no model is currently selected or if current model is not in the available list
+          const currentModel = state.providers[providerName].model;
+          const availableModels = state.providers[providerName].availableModels;
+          
+          if (availableModels.length > 0) {
+            // If no model is selected or current model is not in available models, select the first one
+            if (!currentModel || !availableModels.includes(currentModel)) {
+              let selectedModel = availableModels[0];
+              
+              // CRITICAL FIX: Ensure selectedModel is a string, not an array
+              if (Array.isArray(selectedModel)) {
+                console.error(`🚨 CRITICAL: availableModels[0] is an array! Taking first element:`, selectedModel);
+                selectedModel = selectedModel[0] || 'gpt-4';
+              }
+              
+              if (typeof selectedModel !== 'string') {
+                console.error(`🚨 CRITICAL: selectedModel is not a string! Using default:`, selectedModel);
+                selectedModel = 'gpt-4';
+              }
+              
+              state.providers[providerName].model = selectedModel;
+              console.log(`✅ Auto-selected first model for ${providerName}:`, selectedModel, 'Type:', typeof selectedModel);
+            }
+          }
         }
       })
       .addCase(fetchModelsForProvider.rejected, (state, action) => {
@@ -306,6 +447,7 @@ export const {
   setTemperature, 
   setMaxTokens, 
   clearSettings,
+  fixCorruptedModels,
   setModelForProvider,
   setApiKeyForProvider,
   setBaseUrlForProvider,

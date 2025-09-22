@@ -36,12 +36,27 @@ export const sendMessage = createAsyncThunk(
       // Get user ID from auth state
       const userId = state.auth.user?.id || state.auth.user?.userId;
       
+      // Ensure model is a string, not an array - AGGRESSIVE FIX
+      let safeModel = request.model;
+      console.log('🔍 sendMessage - Raw model received:', safeModel, 'Type:', typeof safeModel, 'IsArray:', Array.isArray(safeModel));
+      
+      if (Array.isArray(safeModel)) {
+        console.error('🚨 CRITICAL: Model is still an array! Taking first element:', safeModel);
+        safeModel = safeModel[0] || 'gpt-4';
+      }
+      if (!safeModel || typeof safeModel !== 'string') {
+        console.error('🚨 CRITICAL: Model is invalid! Using default:', safeModel);
+        safeModel = 'gpt-4';
+      }
+      
+      console.log('✅ sendMessage - Safe model determined:', safeModel, 'Type:', typeof safeModel);
+
       // Map the generic apiKey to the specific provider API key field
       // Only send API key if it's not empty/null to avoid conflicts with backend defaults
       const messageRequest = {
         message: request.message,
         provider: request.provider,
-        model: request.model,
+        model: safeModel,
         temperature: request.temperature,
         maxTokens: request.maxTokens,
         conversationId,
@@ -58,8 +73,16 @@ export const sendMessage = createAsyncThunk(
       };
 
       // Debug logging
-      console.log('sendMessage - Request being sent to backend:', messageRequest);
-      console.log('sendMessage - User session info:', {
+      console.log('🔍 sendMessage - Request received:', request);
+      console.log('🔍 sendMessage - Model details:', {
+        model: request.model,
+        modelType: typeof request.model,
+        modelIsArray: Array.isArray(request.model),
+        modelLength: Array.isArray(request.model) ? request.model.length : 'N/A'
+      });
+      console.log('🔍 sendMessage - Final messageRequest being sent to backend:', messageRequest);
+      console.log('🔍 sendMessage - Final model in request:', messageRequest.model, 'Type:', typeof messageRequest.model);
+      console.log('🔍 sendMessage - User session info:', {
         userId: userId,
         userFromAuth: state.auth.user,
         conversationId: conversationId
