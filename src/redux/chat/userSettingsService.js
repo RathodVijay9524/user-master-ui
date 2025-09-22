@@ -132,7 +132,7 @@ class UserSettingsService {
         },
         groq: {
           apiKey: '',
-          model: 'llama3-70b-8192',
+          model: 'llama-3.1-8b-instant',
           baseUrl: 'https://api.groq.com/openai/v1',
           temperature: 0.7,
           maxTokens: 1000,

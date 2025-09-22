@@ -43,11 +43,11 @@ export const sendMessage = createAsyncThunk(
       
       if (Array.isArray(safeModel)) {
         console.error('🚨 CRITICAL: Model is still an array! Taking first element:', safeModel);
-        safeModel = safeModel[0] || 'gpt-4';
+        safeModel = safeModel[0] || '';
       }
       if (!safeModel || typeof safeModel !== 'string') {
-        console.error('🚨 CRITICAL: Model is invalid! Using default:', safeModel);
-        safeModel = 'gpt-4';
+        console.error('🚨 CRITICAL: Model is invalid! Sending empty model:', safeModel);
+        safeModel = '';
       }
       
       console.log('✅ sendMessage - Safe model determined:', safeModel, 'Type:', typeof safeModel);
